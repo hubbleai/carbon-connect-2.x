@@ -1,0 +1,67 @@
+{
+  "name": "carbon-connect-react",
+  "version": "0.0.1",
+  "description": "This is a react component library for carbon.ai.",
+  "main": "dist/index.cjs",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c --watch"
+  },
+  "keywords": [
+    "carbon",
+    "LLM",
+    "ai",
+    "react",
+    "embeddings"
+  ],
+  "author": "carbon.ai",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "@babel/preset-react": "^7.22.5",
+    "@radix-ui/react-dialog": "^1.0.4",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^25.0.1",
+    "@rollup/plugin-image": "^3.0.2",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-terser": "^0.4.3",
+    "@rollup/plugin-typescript": "^11.1.3",
+    "@types/react": "^18.2.21",
+    "autoprefixer": "^10.4.14",
+    "babel-loader": "^9.1.2",
+    "carbon-connect-js": "^0.0.11",
+    "lodash": "^4.17.21",
+    "postcss": "^8.4.24",
+    "react": "^18.2.0",
+    "react-drag-drop-files": "^2.3.10",
+    "react-icons": "^4.12.0",
+    "react-toastify": "^9.1.3",
+    "rollup": "^3.25.1",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-serve": "^2.0.2",
+    "tailwindcss": "^3.3.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "@radix-ui/react-dialog": "^1.0.0",
+    "carbon-connect-js": "^0.0.11",
+    "lodash": "^4.17.21",
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0",
+    "react-drag-drop-files": "^2.0.0",
+    "react-icons": "^4.0.0",
+    "react-toastify": "^9.0.0",
+    "tailwindcss": "^3.0.0"
+  },
+  "dependencies": {
+    "carbon-connect-js": "^0.0.11",
+    "rc-tree": "^5.8.2",
+    "react-virtualized": "^9.22.0"
+  }
+}
