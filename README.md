@@ -15,13 +15,12 @@ npm install carbon-connect
 The package expects the following npm packages to be installed in your project:
 
 1. `@radix-ui/react-dialog`
-2. `"lodash": "^4.17.21`
-3. `react`
-4. `react-dom`
-5. `react-drag-drop-files`
-6. `react-icons`
-7. `react-toastify`
-8. `tailwindcss`
+2. `react`
+3. `react-dom`
+4. `react-drag-drop-files`
+5. `react-icons`
+6. `react-toastify`
+7. `tailwindcss`
 
 Please check for the versions from `package.json` if you encounter a version mismatch error.
 

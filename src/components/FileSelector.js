@@ -22,7 +22,6 @@ import {
   HiDocument,
   HiFolder,
 } from 'react-icons/hi';
-import { set } from 'lodash';
 
 const FileSelector = ({ account, searchQuery, files }) => {
   const {
