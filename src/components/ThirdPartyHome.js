@@ -73,6 +73,7 @@ const ThirdPartyHome = ({
   activeIntegrations,
   setActiveStep,
 }) => {
+  const [service, setService] = useState(null);
   const [integrationData, setIntegrationData] = useState(null);
   const [connected, setConnected] = useState([]);
   const [canConnectMore, setCanConnectMore] = useState(false);
@@ -103,7 +104,17 @@ const ThirdPartyHome = ({
     entryPoint,
     authenticatedFetch,
     environment,
+    tags,
   } = useCarbon();
+
+  // Fetching the active service data
+  useEffect(() => {
+    setService(
+      processedIntegrations.find(
+        (integration) => integration.id === account.data_source_type
+      )
+    );
+  }, [processedIntegrations]);
 
   useEffect(() => {
     const integrationData = processedIntegrations.find(
@@ -138,12 +149,6 @@ const ThirdPartyHome = ({
     if (!files.length) return;
     setSortedFiles(files);
   }, [files]);
-
-  useEffect(() => {
-    if (activeTab === 'file_explorer') {
-      fetchUserFilesMeta();
-    }
-  }, [activeTab]);
 
   useEffect(() => {
     setFilteredFiles(getFilteredFiles());
@@ -261,10 +266,17 @@ const ThirdPartyHome = ({
   };
 
   const performFileResync = async (rowData) => {
+    const chunkSize =
+      service?.chunkSize || topLevelChunkSize || defaultChunkSize;
+    const overlapSize =
+      service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
+
     const resyncFileResponse = await resyncFile({
       accessToken: accessToken,
       fileId: rowData.id,
       environment: environment,
+      chunkSize: chunkSize,
+      chunkOverlap: overlapSize,
     });
 
     if (resyncFileResponse.status === 200) {
@@ -338,22 +350,22 @@ const ThirdPartyHome = ({
     setSortState({ sortBy, sortDirection });
   };
 
-  const handleCheckboxChange = (fileId, isChecked) => {
-    const newSelectedRows = new Set(selectedRows);
-    if (isChecked) {
-      newSelectedRows.add(fileId);
-    } else {
-      newSelectedRows.delete(fileId);
-    }
-    setSelectedRows(newSelectedRows);
-  };
-
   const handleNewAccountClick = async () => {
     toast.info('You will be redirected to the service to connect your account');
+    const chunkSize =
+      service?.chunkSize || topLevelChunkSize || defaultChunkSize;
+    const overlapSize =
+      service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
+    const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
+
     const generateOauthUrlResponse = await generateOauthurl({
       accessToken: accessToken,
       integrationName: integrationName,
       environment: environment,
+      chunkSize: chunkSize,
+      chunkOverlap: overlapSize,
+      skipEmbeddingGeneration: skipEmbeddingGeneration,
+      tags: tags,
     });
     if (generateOauthUrlResponse.status === 200) {
       const oauthUrl = generateOauthUrlResponse.data.oauth_url;
@@ -364,29 +376,6 @@ const ThirdPartyHome = ({
         'Error generating oauth url: ',
         generateOauthUrlResponse.error
       );
-    }
-  };
-
-  const fetchUserFilesMeta = async () => {
-    console.log(viewSelectedAccountData);
-    const userFilesMetaDataResponse = await authenticatedFetch(
-      `${BASE_URL[environment]}/integrations/items/list`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Token ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          data_source_id: viewSelectedAccountData.id,
-          // data_source_id: 1734,
-        }),
-      }
-    );
-    console.log('userFilesMetaDataResponse: ', userFilesMetaDataResponse, 1734);
-    if (userFilesMetaDataResponse.status === 200) {
-      const userFilesMetaData = await userFilesMetaDataResponse.json();
-      console.log(userFilesMetaData, 1734);
     }
   };
 
@@ -411,7 +400,6 @@ const ThirdPartyHome = ({
   };
 
   const toggleFileSelector = () => {
-    fetchUserFilesMeta();
     setShowFileSelector((prevShowFileSelector) => !prevShowFileSelector);
   };
 

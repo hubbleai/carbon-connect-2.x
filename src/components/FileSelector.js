@@ -22,6 +22,7 @@ import {
   HiDocument,
   HiFolder,
 } from 'react-icons/hi';
+import { toast } from 'react-toastify';
 
 const FileSelector = ({ account, searchQuery, files }) => {
   const {
@@ -30,6 +31,11 @@ const FileSelector = ({ account, searchQuery, files }) => {
     entryPoint,
     authenticatedFetch,
     environment,
+    topLevelChunkSize,
+    topLevelOverlapSize,
+    defaultChunkSize,
+    defaultOverlapSize,
+    tags,
   } = useCarbon();
 
   // This holds the loading state of the files data.
@@ -96,6 +102,15 @@ const FileSelector = ({ account, searchQuery, files }) => {
   // 4. We also set the sortedFilesList to the activeFilesList.
   // 5. We also set the filteredFilesList to the sortedFilesList.
 
+  // Fetching the active service data
+  useEffect(() => {
+    setService(
+      processedIntegrations.find(
+        (integration) => integration.id === account.data_source_type
+      )
+    );
+  }, [processedIntegrations]);
+
   // Fetches the initial files data from the API.
   // This useEffect is executed whenever there is a change to the pwd.
   // The first call happens with the root folder id i.e., null and an offset of 0.
@@ -141,15 +156,17 @@ const FileSelector = ({ account, searchQuery, files }) => {
     // console.log('[FileSelector] filteredFiles: ', filteredFiles);
   }, [sortedFilesList, searchQuery]);
 
+  // File sync related
   const fetchUserFilesMetaData = async (parentId = null, offset = 0) => {
-    // console.log(
-    //   '[FileSelector] Fetching user files meta data...',
-    //   parentId,
-    //   offset
-    // );
+    console.log(
+      '[FileSelector] fetchUserFilesMetaData: ',
+      parentId,
+      offset,
+      account
+    );
     const requestBody = {
       // TODO: Uncomment this before launching.
-      //   data_source_id: account?.data_source_id,
+      // data_source_id: account?.id,
       // TODO: Remove this before launching.
       data_source_id: 1668,
       pagination: {
@@ -157,6 +174,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
       },
     };
 
+    console.log('[FileSelector] requestBody: ', requestBody);
     if (parentId) {
       requestBody.parent_id = parentId.toString();
     }
@@ -178,20 +196,10 @@ const FileSelector = ({ account, searchQuery, files }) => {
       const count = userFilesMetaData?.count;
       const userFiles = userFilesMetaData?.items;
       setOffset(offset + userFiles.length);
-      // console.log('[FileSelector] userFilesMetaData: ', userFilesMetaData);
-      // console.log('[FileSelector] userFiles: ', userFiles);
-      // console.log('[FileSelector] count: ', count);
-      // console.log('[FileSelector] offset: ', offset);
-      // console.log(
-      //   '[FileSelector] offset + userFiles.length: ',
-      //   offset + userFiles.length
-      // );
 
       if (count > offset + userFiles.length) {
-        // console.log('Setting hasMoreFiles to true');
         setHasMoreFiles(true);
       } else {
-        // console.log('Setting hasMoreFiles to false');
         setHasMoreFiles(false);
       }
 
@@ -223,6 +231,47 @@ const FileSelector = ({ account, searchQuery, files }) => {
         }
         setFilesMasterList(newFilesMasterList);
       }
+    }
+  };
+
+  const syncSelectedFiles = async () => {
+    const chunkSize =
+      service?.chunkSize || topLevelChunkSize || defaultChunkSize;
+    const overlapSize =
+      service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
+    const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
+
+    const requestBody = {
+      data_source_id: 1668,
+      ids: [...selectedFilesList],
+      tags: tags,
+      chunk_size: chunkSize,
+      chunk_overlap: overlapSize,
+      skip_embedding_generation: skipEmbeddingGeneration,
+    };
+
+    const syncFilesResponse = await authenticatedFetch(
+      `${BASE_URL[environment]}/integrations/items/sync`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    if (syncFilesResponse.status === 200) {
+      const syncFilesResponseData = await syncFilesResponse.json();
+      console.log('[FileSelector] syncFiles: ', syncFilesResponseData);
+      setSelectedFilesList([]);
+
+      toast.success('Files synced successfully!');
+    } else {
+      toast.error('Files sync failed!');
+
+      setSelectedFilesList([]);
     }
   };
 
@@ -438,6 +487,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
             className={`cc-justify-end ${
               selectedFilesList == 0 ? 'cc-hidden' : ''
             } cc-flex cc-items-center cc-space-x-2 cc-text-xs cc-font-semibold cc-text-blue-500 cc-py-1 cc-px-2 cc-rounded-full cc-border cc-border-blue-500 cc-bg-blue-50 cc-transition cc-duration-150 cc-ease-in-out hover:cc-bg-blue-100`}
+            onClick={syncSelectedFiles}
           >
             Sync {selectedFilesList.length} Files
           </button>
@@ -487,7 +537,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
                         className += ' cc-bg-blue-100';
                       else className += ' cc-bg-white';
 
-                      console.log('Class name: ', className);
                       return className;
                     }}
                     sort={sort}
