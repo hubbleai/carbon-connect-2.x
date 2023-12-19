@@ -1,6 +1,6 @@
 {
   "name": "carbon-connect-react",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "This is a react component library for carbon.ai.",
   "main": "dist/index.cjs",
   "module": "dist/index.esm.js",

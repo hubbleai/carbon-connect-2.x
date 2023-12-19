@@ -7,7 +7,7 @@ Carbon Connect is a React component designed for managing integrations with a va
 To install Carbon Connect, use npm as follows:
 
 ```bash
-npm install carbon-connect
+npm install carbon-connect-react
 ```
 
 ## Prerequisites
@@ -68,7 +68,7 @@ This section demonstrates how to integrate the CarbonConnect component within a 
 1. Import necessary libraries and components:
 
 ```jsx
-import { CarbonConnect } from 'carbon-connect';
+import { CarbonConnect } from 'carbon-connect-react';
 import axios from 'axios';
 ```
 
