@@ -23,50 +23,11 @@ import {
 } from 'carbon-connect-js';
 import { BASE_URL, onSuccessEvents } from '../constants';
 import { VscDebugDisconnect, VscLoading } from 'react-icons/vsc';
-import { FaFileCirclePlus, FaTableList } from 'react-icons/fa6';
 import { IoCloudUploadOutline } from 'react-icons/io5';
 import { CiCircleList } from 'react-icons/ci';
 import 'react-virtualized/styles.css'; // import styles
-import 'rc-tree/assets/index.css';
-import Tree, { TreeNode } from 'rc-tree';
-import fileNodeIcon from '../logos/fileNodeIcon.svg';
-import folderNodeIcon from '../logos/folderNodeIcon.svg';
 import resyncIcon from '../logos/resyncIcon.svg';
 import FileSelector from './FileSelector';
-
-const treeData = [
-  {
-    key: '0-0',
-    title: 'parent 1',
-    icon: <img src={folderNodeIcon} alt="Folder" />,
-    children: [
-      {
-        key: '0-0-0',
-        title: 'parent 1-1',
-        children: [{ key: '0-0-0-0', title: 'parent 1-1-0' }],
-        icon: <img src={folderNodeIcon} alt="Folder" />,
-      },
-      {
-        key: '0-0-1',
-        title: 'parent 1-2',
-        children: [
-          { key: '0-0-1-0', title: 'parent 1-2-0', disableCheckbox: true },
-          { key: '0-0-1-1', title: 'parent 1-2-1' },
-          { key: '0-0-1-2', title: 'parent 1-2-2' },
-          { key: '0-0-1-3', title: 'parent 1-2-3' },
-          { key: '0-0-1-4', title: 'parent 1-2-4' },
-          { key: '0-0-1-5', title: 'parent 1-2-5' },
-          { key: '0-0-1-6', title: 'parent 1-2-6' },
-          { key: '0-0-1-7', title: 'parent 1-2-7' },
-          { key: '0-0-1-8', title: 'parent 1-2-8' },
-          { key: '0-0-1-9', title: 'parent 1-2-9' },
-          { key: 1128, title: 1128 },
-        ],
-        icon: <img src={folderNodeIcon} alt="Folder" />,
-      },
-    ],
-  },
-];
 
 const ThirdPartyHome = ({
   integrationName,
@@ -80,7 +41,7 @@ const ThirdPartyHome = ({
   const [viewSelectedAccountData, setViewSelectedAccountData] = useState(null);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('files'); // ['files', 'config', 'file_explorer']
+  const [activeTab, setActiveTab] = useState('files'); // ['files', 'config']
   const [isRevokingDataSource, setIsRevokingDataSource] = useState(false);
 
   const [selectedRows, setSelectedRows] = useState(new Set());
@@ -105,13 +66,17 @@ const ThirdPartyHome = ({
     authenticatedFetch,
     environment,
     tags,
+    topLevelChunkSize,
+    topLevelOverlapSize,
+    defaultChunkSize,
+    defaultOverlapSize,
   } = useCarbon();
 
   // Fetching the active service data
   useEffect(() => {
     setService(
       processedIntegrations.find(
-        (integration) => integration.id === account.data_source_type
+        (integration) => integration.id === integrationName
       )
     );
   }, [processedIntegrations]);
@@ -385,14 +350,11 @@ const ThirdPartyHome = ({
 
   // Filter function for search
   const getFilteredFiles = () => {
-    if (!searchQuery) return [...sortedFiles, ...sortedFiles, ...sortedFiles];
+    if (!searchQuery) return sortedFiles;
     const temp = sortedFiles.filter((file) =>
       file.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    return [...temp, ...temp, ...temp];
-    // return sortedFiles.filter((file) =>
-    //   file.name.toLowerCase().includes(searchQuery.toLowerCase())
-    // );
+    return temp;
   };
 
   const handleSearchChange = (event) => {
@@ -547,16 +509,6 @@ const ThirdPartyHome = ({
               >
                 Configuration
               </button>
-              {/* <button
-                className={`cc-flex cc-py-2 cc-px-4 cc-text-center cc-cursor-pointer ${
-                  activeTab === 'file_explorer'
-                    ? 'cc-border-b-2 cc-font-bold'
-                    : 'cc-font-normal'
-                } cc-items-center cc-space-x-2 cc-justify-center cc-w-fit-content`}
-                onClick={() => setActiveTab('file_explorer')}
-              >
-                File Explorer
-              </button> */}
             </div>
 
             {activeTab === 'files' &&
@@ -760,75 +712,6 @@ const ThirdPartyHome = ({
                 </button>
               </div>
             )}
-            {activeTab === 'file_explorer' &&
-              (viewSelectedAccountData.synced_files.length === 0 ? (
-                <div className="cc-flex cc-flex-col cc-items-center cc-justify-center">
-                  <p className="cc-text-gray-500 cc-text-sm">No files synced</p>
-                </div>
-              ) : (
-                <div className="cc-w-full cc-flex cc-flex-col cc-space-y-2 cc-h-full cc-divide-y">
-                  <Tree
-                    className="cc-grow cc-overflow-y-auto"
-                    showLine={true}
-                    checkable={true}
-                    selectable={false}
-                    defaultExpandAll={false}
-                    onExpand={() => {}}
-                    // defaultSelectedKeys={this.state.defaultSelectedKeys}
-                    // defaultCheckedKeys={this.state.defaultCheckedKeys}
-                    // onSelect={onFileSelectedFromTree}
-                    onCheck={onFileSelectedFromTree}
-                    treeData={treeData}
-                  />
-                  <button
-                    className={`cc-mt-4 ${
-                      selectedRows.size > 0 ? 'cc-block' : 'cc-invisible'
-                    } cc-bg-black cc-cursor-pointer cc-text-white cc-py-2 cc-px-4 cc-text-sm cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-justify-center`}
-                    onClick={() => {
-                      selectedRows.forEach(async (fileId) => {
-                        const resyncFileResponse = await resyncFile({
-                          accessToken: accessToken,
-                          fileId: fileId,
-                          environment: environment,
-                        });
-
-                        if (resyncFileResponse.status === 200) {
-                          const fileData = resyncFileResponse.data;
-
-                          // Update the file in the files array
-                          const fileIndex = files.findIndex(
-                            (file) => file.id === fileData.id
-                          );
-
-                          // Update the file in the sortedFiles array
-                          const sortedFileIndex = sortedFiles.findIndex(
-                            (file) => file.id === fileData.id
-                          );
-
-                          const newFiles = [...files];
-                          const newSortedFiles = [...sortedFiles];
-
-                          newFiles[fileIndex] = fileData;
-                          newSortedFiles[sortedFileIndex] = fileData;
-
-                          setFiles(newFiles);
-                          setSortedFiles(newSortedFiles);
-
-                          setSelectedRows((prevSelectedRows) => {
-                            prevSelectedRows.delete(fileData.id);
-                            return prevSelectedRows;
-                          });
-                        }
-                      });
-
-                      toast.info('Resync initiated');
-                    }}
-                    disabled={selectedRows.size === 0}
-                  >
-                    <span>Resync Selected Files</span>
-                  </button>
-                </div>
-              ))}
           </div>
         ) : (
           <div className="grow cc-w-full cc-h-full cc-items-center cc-justify-center cc-flex">
