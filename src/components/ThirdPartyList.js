@@ -2,8 +2,7 @@ import '../index.css';
 
 import React, { useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { HiCheckCircle, HiArrowLeft, HiX, HiSearch } from 'react-icons/hi';
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { HiArrowLeft, HiX, HiSearch } from 'react-icons/hi';
 import { useCarbon } from '../contexts/CarbonContext';
 
 const ThirdPartyListItem = ({
@@ -68,64 +67,8 @@ const ThirdPartyList = ({ setActiveStep, activeIntegrations }) => {
     }
   }, [searchTerm, processedIntegrations]);
 
-  const {
-    accessToken,
-    tags,
-    environment,
-    processedIntegrations,
-    topLevelChunkSize,
-    topLevelOverlapSize,
-    defaultChunkSize,
-    defaultOverlapSize,
-    authenticatedFetch,
-    onSuccess,
-    manageModalOpenState,
-    primaryTextColor,
-  } = useCarbon();
-
-  const handleServiceOAuthFlow = async (service) => {
-    try {
-      const chunkSize =
-        service?.chunkSize || topLevelChunkSize || defaultChunkSize;
-      const overlapSize =
-        service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
-      const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
-      const oAuthURLResponse = await authenticatedFetch(
-        `${BASE_URL[environment]}/integrations/oauth_url`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            authorization: `Token ${accessToken}`,
-          },
-          body: JSON.stringify({
-            tags: tags,
-            scope: service?.scope,
-            service: service?.data_source_type,
-            chunk_size: chunkSize,
-            chunk_overlap: overlapSize,
-            skip_embedding_generation: skipEmbeddingGeneration,
-          }),
-        }
-      );
-
-      if (oAuthURLResponse.status === 200) {
-        // setFlag(service?.data_source_type, true);
-        onSuccess({
-          status: 200,
-          data: null,
-          integration: service?.data_source_type,
-          action: onSuccessEvents.INITIATE,
-          event: onSuccessEvents.INITIATE,
-        });
-        const oAuthURLResponseData = await oAuthURLResponse.json();
-
-        window.open(oAuthURLResponseData.oauth_url, '_blank');
-      }
-    } catch (err) {
-      console.log('[ThirdPartyList.js] Error in handleServiceOAuthFlow: ', err);
-    }
-  };
+  const { processedIntegrations, manageModalOpenState, primaryTextColor } =
+    useCarbon();
 
   return (
     <div className="cc-flex cc-flex-col cc-h-full cc-items-center cc-px-4 cc-py-6">
