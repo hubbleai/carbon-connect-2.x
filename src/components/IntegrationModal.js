@@ -207,8 +207,8 @@ const IntegrationModal = ({
             for (let i = 0; i < integrationModifications.length; i++) {
               onSuccess(integrationModifications[i]);
             }
-            setActiveIntegrations(responseBody['active_integrations']);
           }
+          setActiveIntegrations(responseBody['active_integrations']);
         } else {
           firstFetchCompletedRef.current = true;
           activeIntegrationsRef.current = responseBody['active_integrations'];
