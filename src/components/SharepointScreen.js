@@ -12,16 +12,7 @@ import { BASE_URL, onSuccessEvents } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
-function SharepointScreen({
-  setActiveStep,
-  entryPoint,
-  environment,
-  tags,
-  onSuccess,
-  onError,
-  primaryBackgroundColor,
-  primaryTextColor,
-}) {
+function SharepointScreen({ buttonColor, labelColor }) {
   const [microsoftTenant, setMicrosoftTenant] = useState('');
   const [sharepointSiteName, setSharepointSiteName] = useState('');
 
@@ -49,6 +40,14 @@ function SharepointScreen({
     authenticatedFetch,
     secondaryBackgroundColor,
     secondaryTextColor,
+    setActiveStep,
+    entryPoint,
+    environment,
+    tags,
+    onSuccess,
+    onError,
+    primaryBackgroundColor,
+    primaryTextColor,
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -120,54 +119,44 @@ function SharepointScreen({
   };
 
   return (
-    <div className="cc-flex cc-flex-col cc-h-[540px] cc-items-center cc-relative">
-      <Dialog.Title className="cc-text-lg cc-mb-4 cc-font-medium cc-w-full">
-        <div className="cc-w-full cc-flex cc-items-center cc-relative cc-justify-center">
-          <HiArrowLeft
-            onClick={() => setActiveStep(entryPoint ? 0 : 1)}
-            className="cc-cursor-pointer cc-h-6 cc-w-6 cc-text-gray-400 cc-absolute cc-left-0"
-          />
-          <SiMicrosoftsharepoint className="cc-text-3xl cc-text-black" />
-        </div>
-      </Dialog.Title>
+    <div className="cc-flex cc-flex-col  cc-py-4 cc-justify-between cc-h-full">
+      <div className="py-4 cc-flex cc-grow cc-w-full">
+        <div className="cc-flex cc-flex-col cc-justify-start cc-h-full cc-items-start cc-w-full cc-space-y-4">
+          <span className="cc-text-sm">
+            Please enter the <strong>Sharepoint</strong>{' '}
+            <span className="cc-bg-gray-200 cc-px-1 cc-py-0.5 cc-rounded cc-font-mono cc-text-red-400">
+              tenant
+            </span>{' '}
+            and the{' '}
+            <span className="cc-bg-gray-200 cc-px-1 cc-py-0.5 cc-rounded cc-font-mono cc-text-red-400">
+              site name
+            </span>{' '}
+            of the account you wish to connect.
+          </span>
 
-      <>
-        <div className="py-4 cc-flex cc-grow cc-w-full">
-          <div className="cc-flex cc-flex-col cc-justify-start cc-h-full cc-items-start cc-w-full cc-space-y-4">
-            <span className="cc-text-sm">
-              Please enter the <strong>Sharepoint</strong>{' '}
-              <span className="cc-bg-gray-200 cc-px-1 cc-py-0.5 cc-rounded cc-font-mono cc-text-red-400">
-                tenant
-              </span>{' '}
-              and the{' '}
-              <span className="cc-bg-gray-200 cc-px-1 cc-py-0.5 cc-rounded cc-font-mono cc-text-red-400">
-                site name
-              </span>{' '}
-              of the account you wish to connect.
-            </span>
-
-            <div className="cc-flex cc-space-x-2 cc-items-center cc-w-full cc-h-10">
-              <input
-                type="text"
-                className="cc-p-2 cc-flex-grow cc-text-gray-700 cc-text-sm cc-border-4 cc-border-gray-400"
-                style={{ borderRadius: '0.375rem' }}
-                placeholder="Your Tenant Name"
-                value={microsoftTenant}
-                onChange={(e) => setMicrosoftTenant(e.target.value)}
-              />
-            </div>
-            <div className="cc-flex cc-space-x-2 cc-items-center cc-w-full cc-h-10">
-              <input
-                type="text"
-                className="cc-p-2 cc-flex-grow cc-text-gray-700 cc-text-sm cc-border-4 cc-border-gray-400"
-                style={{ borderRadius: '0.375rem' }}
-                placeholder="Your Site Name"
-                value={sharepointSiteName}
-                onChange={(e) => setSharepointSiteName(e.target.value)}
-              />
-            </div>
+          <div className="cc-flex cc-space-x-2 cc-items-center cc-w-full cc-h-10">
+            <input
+              type="text"
+              className="cc-p-2 cc-flex-grow cc-text-gray-700 cc-text-sm cc-border-4 cc-border-gray-400"
+              style={{ borderRadius: '0.375rem' }}
+              placeholder="Your Tenant Name"
+              value={microsoftTenant}
+              onChange={(e) => setMicrosoftTenant(e.target.value)}
+            />
+          </div>
+          <div className="cc-flex cc-space-x-2 cc-items-center cc-w-full cc-h-10">
+            <input
+              type="text"
+              className="cc-p-2 cc-flex-grow cc-text-gray-700 cc-text-sm cc-border-4 cc-border-gray-400"
+              style={{ borderRadius: '0.375rem' }}
+              placeholder="Your Site Name"
+              value={sharepointSiteName}
+              onChange={(e) => setSharepointSiteName(e.target.value)}
+            />
           </div>
         </div>
+      </div>
+      <>
         <p
           className="cc-flex cc-text-gray-500 cc-p-2 cc-space-x-2 cc-bg-gray-100 cc-rounded-md cc-mb-2 cc-items-center"
           style={{
@@ -181,14 +170,13 @@ function SharepointScreen({
             your Sharepoint profile and content.
           </span>
         </p>
-
         <button
           className={`cc-w-full cc-h-12 cc-flex cc-flex-row cc-items-center cc-justify-center cc-rounded-md cc-cursor-pointer cc-space-x-2`}
           style={{
             backgroundColor: submitButtonHoveredState
-              ? darkenColor(primaryBackgroundColor, -10)
-              : primaryBackgroundColor,
-            color: primaryTextColor,
+              ? darkenColor(buttonColor, -10)
+              : buttonColor,
+            color: labelColor,
           }}
           onClick={fetchOauthURL}
           onMouseEnter={() => setSubmitButtonHoveredState(true)}

@@ -33,6 +33,7 @@ const IntegrationModal = ({
   activeStep,
   setActiveStep,
   zIndex = 1000,
+  enableToasts = true,
 }) => {
   const [activeIntegrations, setActiveIntegrations] = useState([]);
 
@@ -339,58 +340,15 @@ const IntegrationModal = ({
               secondaryTextColor={secondaryTextColor}
             />
           )}
-
-          {/*  {activeStep === 'SHAREPOINT' && (
-            <SharepointScreen
-              setActiveStep={setActiveStep}
-              entryPoint={entryPoint}
-              environment={environment}
-              tags={tags}
-              onSuccess={onSuccess}
-              onError={onError}
-              primaryBackgroundColor={primaryBackgroundColor}
-              primaryTextColor={primaryTextColor}
-              secondaryBackgroundColor={secondaryBackgroundColor}
-              secondaryTextColor={secondaryTextColor}
-            />
-          )}
-
-          {activeStep === 'ZENDESK' && (
-            <ZendeskScreen
-              setActiveStep={setActiveStep}
-              entryPoint={entryPoint}
-              environment={environment}
-              tags={tags}
-              onSuccess={onSuccess}
-              onError={onError}
-              primaryBackgroundColor={primaryBackgroundColor}
-              primaryTextColor={primaryTextColor}
-              secondaryBackgroundColor={secondaryBackgroundColor}
-              secondaryTextColor={secondaryTextColor}
-            />
-          )}
-
-          {activeStep === 'CONFLUENCE' && (
-            <ConfluenceScreen
-              setActiveStep={setActiveStep}
-              entryPoint={entryPoint}
-              environment={environment}
-              tags={tags}
-              onSuccess={onSuccess}
-              onError={onError}
-              primaryBackgroundColor={primaryBackgroundColor}
-              primaryTextColor={primaryTextColor}
-              secondaryBackgroundColor={secondaryBackgroundColor}
-              secondaryTextColor={secondaryTextColor}
-            />
-          )} */}
         </Dialog.Content>
 
-        <ToastContainer
-          position="bottom-right"
-          pauseOnFocusLoss={false}
-          pauseOnHover={false}
-        />
+        {enableToasts && (
+          <ToastContainer
+            position="bottom-right"
+            pauseOnFocusLoss={false}
+            pauseOnHover={false}
+          />
+        )}
       </Dialog.Portal>
     </Dialog.Root>
   );

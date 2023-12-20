@@ -29,6 +29,10 @@ import 'react-virtualized/styles.css'; // import styles
 import resyncIcon from '../logos/resyncIcon.svg';
 import FileSelector from './FileSelector';
 
+import ZendeskScreen from './ZendeskScreen';
+import ConfluenceScreen from './ConfluenceScreen';
+import SharepointScreen from './SharepointScreen';
+
 const ThirdPartyHome = ({
   integrationName,
   activeIntegrations,
@@ -44,7 +48,7 @@ const ThirdPartyHome = ({
   const [activeTab, setActiveTab] = useState('files'); // ['files', 'config']
   const [isRevokingDataSource, setIsRevokingDataSource] = useState(false);
 
-  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [showAdditionalStep, setShowAdditionalStep] = useState(false);
   const [files, setFiles] = useState([]);
   const [sortedFiles, setSortedFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -344,10 +348,6 @@ const ThirdPartyHome = ({
     }
   };
 
-  const onFileSelectedFromTree = (props) => {
-    console.log(props);
-  };
-
   // Filter function for search
   const getFilteredFiles = () => {
     if (!searchQuery) return sortedFiles;
@@ -423,22 +423,30 @@ const ThirdPartyHome = ({
             </div>
 
             {!isLoading && connected?.length === 0 ? (
-              <button
-                className="cc-text-white cc-cursor-pointer cc-py-2 cc-px-4 cc-text-xs cc-rounded-md cc-w-1/3 sm:cc-w-2/3 md:cc-w-1/4 lg:cc-w-1/4 cc-text-center cc-truncate"
-                style={{
-                  backgroundColor:
-                    integrationData?.branding?.header?.primaryButtonColor ??
-                    '#000000',
-                  color:
-                    integrationData?.branding?.header?.primaryLabelColor ??
-                    '#FFFFFF',
-                }}
-                onClick={() => {
-                  handleNewAccountClick();
-                }}
-              >
-                Connect Account
-              </button>
+              !showAdditionalStep && (
+                <button
+                  className="cc-text-white cc-cursor-pointer cc-py-2 cc-px-4 cc-text-xs cc-rounded-md cc-w-1/3 sm:cc-w-2/3 md:cc-w-1/4 lg:cc-w-1/4 cc-text-center cc-truncate"
+                  style={{
+                    backgroundColor:
+                      integrationData?.branding?.header?.primaryButtonColor ??
+                      '#000000',
+                    color:
+                      integrationData?.branding?.header?.primaryLabelColor ??
+                      '#FFFFFF',
+                  }}
+                  onClick={() => {
+                    if (
+                      integrationName === 'ZENDESK' ||
+                      integrationName === 'SHAREPOINT' ||
+                      integrationName === 'CONFLUENCE'
+                    )
+                      setShowAdditionalStep(true);
+                    else handleNewAccountClick();
+                  }}
+                >
+                  Connect Account
+                </button>
+              )
             ) : (
               <select
                 className="cc-py-2 cc-px-4 cc-text-xs cc-rounded-md cc-w-1/3 sm:cc-w-full md:cc-w-1/3 cc-truncate cc-text-left"
@@ -714,13 +722,46 @@ const ThirdPartyHome = ({
             )}
           </div>
         ) : (
-          <div className="grow cc-w-full cc-h-full cc-items-center cc-justify-center cc-flex">
+          <div className="cc-grow cc-w-full cc-h-full cc-items-center cc-justify-center cc-flex">
             {connected.length === 0 ? (
-              <div className="cc-flex cc-flex-col cc-items-center cc-justify-center">
-                <p className="cc-text-gray-500 cc-text-sm">
-                  No account connected
-                </p>
-              </div>
+              showAdditionalStep ? (
+                (integrationName === 'ZENDESK' && (
+                  <ZendeskScreen
+                    buttonColor={
+                      integrationData?.branding?.header?.primaryButtonColor
+                    }
+                    labelColor={
+                      integrationData?.branding?.header?.primaryLabelColor
+                    }
+                  />
+                )) ||
+                (integrationName === 'CONFLUENCE' && (
+                  <ConfluenceScreen
+                    buttonColor={
+                      integrationData?.branding?.header?.primaryButtonColor
+                    }
+                    labelColor={
+                      integrationData?.branding?.header?.primaryLabelColor
+                    }
+                  />
+                )) ||
+                (integrationName === 'SHAREPOINT' && (
+                  <SharepointScreen
+                    buttonColor={
+                      integrationData?.branding?.header?.primaryButtonColor
+                    }
+                    labelColor={
+                      integrationData?.branding?.header?.primaryLabelColor
+                    }
+                  />
+                ))
+              ) : (
+                <div className="cc-flex cc-flex-col cc-items-center cc-justify-center">
+                  <p className="cc-text-gray-500 cc-text-sm">
+                    No account connected
+                  </p>
+                </div>
+              )
             ) : (
               <div className="cc-flex cc-flex-col cc-items-center cc-justify-center">
                 <p className="cc-text-gray-500 cc-text-sm">

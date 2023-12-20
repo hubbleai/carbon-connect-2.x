@@ -379,6 +379,8 @@ export const CarbonProvider = ({
   activeStep,
   setActiveStep,
   backButtonText,
+  enableToasts,
+  zIndex,
 }) => {
   const [showModal, setShowModal] = useState(open);
   const [loading, setLoading] = useState(false);
@@ -587,6 +589,8 @@ export const CarbonProvider = ({
     activeStep,
     setActiveStep,
     backButtonText,
+    enableToasts,
+    zIndex,
   };
 
   return (
