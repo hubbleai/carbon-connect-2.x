@@ -165,10 +165,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
       account
     );
     const requestBody = {
-      // TODO: Uncomment this before launching.
-      // data_source_id: account?.id,
-      // TODO: Remove this before launching.
-      data_source_id: 1668,
+      data_source_id: account?.id,
       pagination: {
         offset: offset,
       },
