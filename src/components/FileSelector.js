@@ -297,8 +297,8 @@ const FileSelector = ({ account, searchQuery, files }) => {
     const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
 
     const requestBody = {
-      data_source_id: 1668,
-      ids: [...selectedFilesList],
+      data_source_id: account?.id,
+      ids: selectedFilesList.map((id) => id.toString()),
       tags: tags,
       chunk_size: chunkSize,
       chunk_overlap: overlapSize,
@@ -306,7 +306,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
     };
 
     const syncFilesResponse = await authenticatedFetch(
-      `${BASE_URL[environment]}/integrations/items/sync`,
+      `${BASE_URL[environment]}/integrations/files/sync`,
       {
         method: 'POST',
         headers: {
@@ -321,7 +321,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
       const syncFilesResponseData = await syncFilesResponse.json();
       setSelectedFilesList([]);
 
-      toast.success('Files synced successfully!');
+      toast.success('Files successfully queued for sync!');
     } else {
       toast.error('Files sync failed!');
 
