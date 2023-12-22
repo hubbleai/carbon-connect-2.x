@@ -22,7 +22,7 @@ import {
   resyncFile,
 } from 'carbon-connect-js';
 import { BASE_URL, onSuccessEvents } from '../constants';
-import { VscDebugDisconnect, VscLoading } from 'react-icons/vsc';
+import { VscDebugDisconnect, VscLoading, VscSync } from 'react-icons/vsc';
 import { IoCloudUploadOutline } from 'react-icons/io5';
 import { CiCircleList } from 'react-icons/ci';
 import 'react-virtualized/styles.css'; // import styles
@@ -32,6 +32,7 @@ import FileSelector from './FileSelector';
 import ZendeskScreen from './ZendeskScreen';
 import ConfluenceScreen from './ConfluenceScreen';
 import SharepointScreen from './SharepointScreen';
+import { FcSettings } from 'react-icons/fc';
 
 const ThirdPartyHome = ({
   integrationName,
@@ -117,6 +118,7 @@ const ThirdPartyHome = ({
   useEffect(() => {
     if (!files.length) return;
     setSortedFiles(files);
+    // console.log('files', files, offset);
   }, [files]);
 
   useEffect(() => {
@@ -320,7 +322,6 @@ const ThirdPartyHome = ({
   };
 
   const handleNewAccountClick = async () => {
-    toast.info('You will be redirected to the service to connect your account');
     const chunkSize =
       service?.chunkSize || topLevelChunkSize || defaultChunkSize;
     const overlapSize =
@@ -363,6 +364,31 @@ const ThirdPartyHome = ({
 
   const toggleFileSelector = () => {
     setShowFileSelector((prevShowFileSelector) => !prevShowFileSelector);
+  };
+
+  const resyncDataSource = async () => {
+    const requestBody = {
+      data_source_id: viewSelectedAccountData.id,
+    };
+
+    const resyncDataSourceResponse = await authenticatedFetch(
+      `${BASE_URL[environment]}/integrations/items/sync`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    if (resyncDataSourceResponse.status === 200) {
+      toast.success('Fetching files');
+    } else {
+      toast.error('Error fetching files');
+      console.error('Error fetching files: ', resyncDataSourceResponse.error);
+    }
   };
 
   return (
@@ -441,7 +467,12 @@ const ThirdPartyHome = ({
                       integrationName === 'CONFLUENCE'
                     )
                       setShowAdditionalStep(true);
-                    else handleNewAccountClick();
+                    else {
+                      toast.info(
+                        'You will be redirected to the service to connect your account'
+                      );
+                      handleNewAccountClick();
+                    }
                   }}
                 >
                   Connect Account
@@ -452,14 +483,25 @@ const ThirdPartyHome = ({
                 className="cc-py-2 cc-px-4 cc-text-xs cc-rounded-md cc-w-1/3 sm:cc-w-full md:cc-w-1/3 cc-truncate cc-text-left"
                 onChange={async (e) => {
                   if (e.target.value === 'add-account') {
+                    toast.info(
+                      'You will be redirected to the service to connect your account'
+                    );
                     handleNewAccountClick();
                     e.target.value = ''; // Reset the select value
+                  } else if (e.target.value === '') {
+                    setViewSelectedAccountData(null);
                   } else {
                     const selectedAccount = connected.find(
                       (account) =>
                         account.data_source_external_id === e.target.value
                     );
-                    setViewSelectedAccountData(selectedAccount || null);
+                    if (selectedAccount) {
+                      setOffset(0);
+                      setFiles([]);
+                      setViewSelectedAccountData(selectedAccount || null);
+                    } else {
+                      toast.error('Error fetching files');
+                    }
                   }
                 }}
               >
@@ -686,8 +728,23 @@ const ThirdPartyHome = ({
               ))}
 
             {activeTab === 'config' && (
-              <div className="cc-flex cc-flex-row cc-w-full cc-border cc-rounded-md cc-border-gray-300 cc-mt-4 cc-px-4 cc-py-4 cc-items-center">
-                <h1 className="cc-grow cc-font-semibold">Disconnect Account</h1>
+              <div className="cc-flex cc-flex-row cc-w-full cc-border cc-rounded-md cc-border-gray-300 cc-mt-4 cc-px-4 cc-py-4 cc-items-center cc-space-x-4">
+                <h1 className="cc-grow cc-font-semibold">
+                  {viewSelectedAccountData.data_source_external_id.split(
+                    '|'
+                  )[1] ||
+                    viewSelectedAccountData.data_source_external_id.split(
+                      '-'
+                    )[1]}
+                </h1>
+                <VscSync
+                  onClick={resyncDataSource}
+                  className="cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6"
+                />
+                <FcSettings
+                  onClick={handleNewAccountClick}
+                  className="cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6"
+                />
                 <button
                   className="cc-text-red-600 cc-bg-red-200 cc-px-4 cc-py-2 cc-font-semibold cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
                   onClick={async () => {

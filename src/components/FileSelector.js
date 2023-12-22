@@ -85,6 +85,9 @@ const FileSelector = ({ account, searchQuery, files }) => {
   // Selected files list. This is the list of files that the user has selected.
   const [selectedFilesList, setSelectedFilesList] = useState([]);
 
+  // Used to avoid double fetches when the component mounts.
+  const [shouldFetch, setShouldFetch] = useState(false);
+
   // How the file selector works:
   // 1. We fetch the files data from the API and store it in the filesMasterList.
   // 2. We set the activeFilesList to the filesMasterList.
@@ -117,12 +120,31 @@ const FileSelector = ({ account, searchQuery, files }) => {
   useEffect(() => {
     if (pwd.length > 0) {
       const lastPwd = pwd[pwd.length - 1];
+      console.log('[FileSelector] lastPwd: ', lastPwd);
 
       // We update the filesMasterList with the files data in this method.
       // TODO: Add/Update offset and hasMoreFiles to fileMasterList as well.
-      fetchUserFilesMetaData(lastPwd.id, lastPwd.offset);
+      if (hasMoreFiles && shouldFetch) {
+        fetchUserFilesMetaData(lastPwd.id, lastPwd.offset);
+      }
+
+      updateFileSelectorViewData();
     }
   }, [pwd]);
+
+  useEffect(() => {
+    if (!account) return;
+
+    setFilesMasterList([]);
+    setHasMoreFiles(true);
+    setOffset(0);
+    setPwd([
+      { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null },
+    ]);
+    setSelectedFilesList([]);
+    setShouldFetch(true);
+    // fetchUserFilesMetaData(null, 0);
+  }, [account]);
 
   // Once the files data is fetched, we set the active files list to the master list.
   // We will also set the active files list to the selected folder's list using the master file data and parent id.
@@ -158,12 +180,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
   // File sync related
   const fetchUserFilesMetaData = async (parentId = null, offset = 0) => {
-    console.log(
-      '[FileSelector] fetchUserFilesMetaData: ',
-      parentId,
-      offset,
-      account
-    );
     const requestBody = {
       data_source_id: account?.id,
       pagination: {
@@ -171,7 +187,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
       },
     };
 
-    console.log('[FileSelector] requestBody: ', requestBody);
     if (parentId) {
       requestBody.parent_id = parentId.toString();
     }
@@ -194,40 +209,96 @@ const FileSelector = ({ account, searchQuery, files }) => {
       const userFiles = userFilesMetaData?.items;
       setOffset(offset + userFiles.length);
 
-      if (count > offset + userFiles.length) {
-        setHasMoreFiles(true);
-      } else {
-        setHasMoreFiles(false);
-      }
+      console.log('[FileSelector] userFilesMetaData: ', userFilesMetaData);
+      console.log('[FileSelector] userFiles: ', userFiles);
+      console.log('[FileSelector] count: ', count);
+      console.log('[FileSelector] offset: ', offset);
+      console.log(
+        '[FileSelector] hasMoreFiles condition: ',
+        offset + userFiles.length,
+        count
+      );
 
-      if (!parentId) {
-        setFilesMasterList((prev) => [
-          ...prev,
-          ...(userFilesMetaData?.items || []),
-        ]);
+      let hasMoreFilesValue = true;
+      if (count > offset + userFiles.length) {
+        hasMoreFilesValue = true;
       } else {
-        // We are inside a folder. We have to append the files list to the children of the parent folder.
-        // We need to find the parent folder in the master files list and append the children to it.
-        let newFilesMasterList = [...filesMasterList];
-        let currentLevel = newFilesMasterList;
-        for (const dir of pwd.slice(1)) {
-          const folderIndex = currentLevel.findIndex((f) => f.id === dir.id);
-          if (folderIndex !== -1) {
-            if (!currentLevel[folderIndex].children) {
-              currentLevel[folderIndex].children = [];
-            }
-            if (dir.id === parentId) {
-              currentLevel[folderIndex].children = [
-                ...currentLevel[folderIndex].children,
-                ...userFiles,
-              ];
-              break;
-            }
-            currentLevel = currentLevel[folderIndex].children;
-          }
-        }
-        setFilesMasterList(newFilesMasterList);
+        hasMoreFilesValue = false;
       }
+      setHasMoreFiles(hasMoreFilesValue);
+      setPwd((prevState) => {
+        const pwdCopy = [...prevState];
+        const lastPwd = pwdCopy[pwdCopy.length - 1];
+        lastPwd['offset'] = offset;
+        lastPwd['hasMoreFiles'] = hasMoreFilesValue;
+        lastPwd['parentId'] = parentId;
+        return pwdCopy;
+      });
+
+      // if (!parentId) {
+      //   setFilesMasterList((prev) => [
+      //     ...prev,
+      //     ...(userFilesMetaData?.items || []),
+      //   ]);
+      // } else {
+      //   // We are inside a folder. We have to append the files list to the children of the parent folder.
+      //   // We need to find the parent folder in the master files list and append the children to it.
+      //   let newFilesMasterList = [...filesMasterList];
+      //   let currentLevel = newFilesMasterList;
+      //   for (const dir of pwd.slice(1)) {
+      //     const folderIndex = currentLevel.findIndex((f) => f.id === dir.id);
+      //     if (folderIndex !== -1) {
+      //       if (!currentLevel[folderIndex].children) {
+      //         currentLevel[folderIndex].children = [];
+      //       }
+      //       if (dir.id === parentId) {
+      //         currentLevel[folderIndex].children = [
+      //           ...currentLevel[folderIndex].children,
+      //           ...userFiles,
+      //         ];
+      //         break;
+      //       }
+      //       currentLevel = currentLevel[folderIndex].children;
+      //     }
+      //   }
+      //   setFilesMasterList(newFilesMasterList);
+      // }
+      updateFileSelectorViewData(userFilesMetaData, userFiles, parentId);
+    }
+  };
+
+  const updateFileSelectorViewData = (
+    userFilesMetaData = {},
+    userFiles = [],
+    parentId = null
+  ) => {
+    if (!parentId) {
+      setFilesMasterList((prev) => [
+        ...prev,
+        ...(userFilesMetaData?.items || []),
+      ]);
+    } else {
+      // We are inside a folder. We have to append the files list to the children of the parent folder.
+      // We need to find the parent folder in the master files list and append the children to it.
+      let newFilesMasterList = [...filesMasterList];
+      let currentLevel = newFilesMasterList;
+      for (const dir of pwd.slice(1)) {
+        const folderIndex = currentLevel.findIndex((f) => f.id === dir.id);
+        if (folderIndex !== -1) {
+          if (!currentLevel[folderIndex].children) {
+            currentLevel[folderIndex].children = [];
+          }
+          if (dir.id === parentId) {
+            currentLevel[folderIndex].children = [
+              ...currentLevel[folderIndex].children,
+              ...userFiles,
+            ];
+            break;
+          }
+          currentLevel = currentLevel[folderIndex].children;
+        }
+      }
+      setFilesMasterList(newFilesMasterList);
     }
   };
 
@@ -285,7 +356,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
   const onBreadcrumbClick = (index) => {
     // Navigate to the clicked directory in the breadcrumb
     const newPwd = pwd.slice(0, index + 1);
-    // console.log('[FileSelector] onBreadcrumbClick: ', newPwd);
+    console.log('[FileSelector] onBreadcrumbClick: ', newPwd);
     setPwd(newPwd);
     // Fetch data for the selected directory...
   };
@@ -431,17 +502,16 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
   // Row actions related
   const onRowSingleClick = ({ rowData }) => {
-    console.log('[FileSelector] onRowSingleClick: ', rowData);
     // For now, we are not allowing the user to select folders.
-    if (rowData.is_expandable) return;
-
-    // If the user has selected the file, we will deselect it.
-    if (selectedFilesList.includes(rowData.id)) {
-      setSelectedFilesList((prev) => prev.filter((id) => id !== rowData.id));
-    }
-    // If the user has not selected the file, we will select it.
-    else {
-      setSelectedFilesList((prev) => [...prev, rowData.id]);
+    if (rowData.is_selectable) {
+      // If the user has selected the file, we will deselect it.
+      if (selectedFilesList.includes(rowData.id)) {
+        setSelectedFilesList((prev) => prev.filter((id) => id !== rowData.id));
+      }
+      // If the user has not selected the file, we will select it.
+      else {
+        setSelectedFilesList((prev) => [...prev, rowData.id]);
+      }
     }
   };
 
@@ -463,7 +533,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
           parentId: lastPwd['id'],
         });
 
-        console.log('[FileSelector] onRowDoubleClick: ', pwdCopy);
         return pwdCopy;
       });
       setOffset(0);
@@ -550,12 +619,12 @@ const FileSelector = ({ account, searchQuery, files }) => {
                       sortBy={sortState.sortBy}
                     />
                     {/* <Column
-                      label="Status"
-                      dataKey="sync_status"
-                      width={width / 4}
-                      // cellRenderer={statusCellRenderer}
-                      headerRenderer={headerRenderer}
-                    /> */}
+                    label="Status"
+                    dataKey="sync_status"
+                    width={width / 4}
+                    // cellRenderer={statusCellRenderer}
+                    headerRenderer={headerRenderer}
+                  /> */}
                     <Column
                       label="Created At"
                       dataKey="created_at"
@@ -564,12 +633,12 @@ const FileSelector = ({ account, searchQuery, files }) => {
                       headerRenderer={headerRenderer}
                     />
                     {/* <Column
-                      label=""
-                      dataKey=""
-                      width={50}
-                      // cellRenderer={resyncCellRenderer}
-                      headerRenderer={() => <></>}
-                    /> */}
+                    label=""
+                    dataKey=""
+                    width={50}
+                    // cellRenderer={resyncCellRenderer}
+                    headerRenderer={() => <></>}
+                  /> */}
                   </Table>
                 </div>
               );
