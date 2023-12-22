@@ -48,6 +48,7 @@ const ThirdPartyHome = ({
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('files'); // ['files', 'config']
   const [isRevokingDataSource, setIsRevokingDataSource] = useState(false);
+  const [isResyncingDataSource, setIsResyncingDataSource] = useState(false);
 
   const [showAdditionalStep, setShowAdditionalStep] = useState(false);
   const [files, setFiles] = useState([]);
@@ -118,7 +119,6 @@ const ThirdPartyHome = ({
   useEffect(() => {
     if (!files.length) return;
     setSortedFiles(files);
-    // console.log('files', files, offset);
   }, [files]);
 
   useEffect(() => {
@@ -367,6 +367,7 @@ const ThirdPartyHome = ({
   };
 
   const resyncDataSource = async () => {
+    setIsResyncingDataSource(true);
     const requestBody = {
       data_source_id: viewSelectedAccountData.id,
     };
@@ -387,8 +388,8 @@ const ThirdPartyHome = ({
       toast.success('Fetching files');
     } else {
       toast.error('Error fetching files');
-      console.error('Error fetching files: ', resyncDataSourceResponse.error);
     }
+    setIsResyncingDataSource(false);
   };
 
   return (
@@ -643,8 +644,6 @@ const ThirdPartyHome = ({
                         {({ onRowsRendered, registerChild }) => (
                           <AutoSizer>
                             {({ width, height }) => {
-                              console.log('width', width);
-                              console.log('height', height);
                               return (
                                 <div className="cc-flex cc-grow cc-w-full">
                                   <Table
@@ -739,12 +738,17 @@ const ThirdPartyHome = ({
                 </h1>
                 <VscSync
                   onClick={resyncDataSource}
-                  className="cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6"
+                  className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${
+                    isResyncingDataSource ? 'animate-spin' : ''
+                  }`}
                 />
-                <FcSettings
-                  onClick={handleNewAccountClick}
-                  className="cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6"
-                />
+                {integrationName === 'NOTION' && (
+                  <FcSettings
+                    onClick={handleNewAccountClick}
+                    className="cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6"
+                  />
+                )}
+
                 <button
                   className="cc-text-red-600 cc-bg-red-200 cc-px-4 cc-py-2 cc-font-semibold cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
                   onClick={async () => {

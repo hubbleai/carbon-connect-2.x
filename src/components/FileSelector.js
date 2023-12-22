@@ -120,7 +120,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
   useEffect(() => {
     if (pwd.length > 0) {
       const lastPwd = pwd[pwd.length - 1];
-      console.log('[FileSelector] lastPwd: ', lastPwd);
 
       // We update the filesMasterList with the files data in this method.
       // TODO: Add/Update offset and hasMoreFiles to fileMasterList as well.
@@ -159,7 +158,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
       }
     }
     setActiveFilesList(temp);
-    // console.log('[FileSelector] filesMasterList: ', filesMasterList, pwd);
   }, [filesMasterList]);
 
   // Once the active files list is set, we set the sorted files list to the active files list.
@@ -168,14 +166,12 @@ const FileSelector = ({ account, searchQuery, files }) => {
   useEffect(() => {
     if (!activeFilesList.length) setSortedFilesList([]);
     else setSortedFilesList(activeFilesList);
-    // console.log('[FileSelector] activeFilesList: ', activeFilesList);
   }, [activeFilesList]);
 
   // Once the sorted files list is set, we set the filtered files list to the sorted files list.
   useEffect(() => {
     const filteredFiles = getFilteredFiles();
     setFilteredFilesList(filteredFiles);
-    // console.log('[FileSelector] filteredFiles: ', filteredFiles);
   }, [sortedFilesList, searchQuery]);
 
   // File sync related
@@ -207,17 +203,8 @@ const FileSelector = ({ account, searchQuery, files }) => {
       const userFilesMetaData = await userFilesMetaDataResponse.json();
       const count = userFilesMetaData?.count;
       const userFiles = userFilesMetaData?.items;
+      console.log('Offset: ', offset);
       setOffset(offset + userFiles.length);
-
-      console.log('[FileSelector] userFilesMetaData: ', userFilesMetaData);
-      console.log('[FileSelector] userFiles: ', userFiles);
-      console.log('[FileSelector] count: ', count);
-      console.log('[FileSelector] offset: ', offset);
-      console.log(
-        '[FileSelector] hasMoreFiles condition: ',
-        offset + userFiles.length,
-        count
-      );
 
       let hasMoreFilesValue = true;
       if (count > offset + userFiles.length) {
@@ -226,14 +213,14 @@ const FileSelector = ({ account, searchQuery, files }) => {
         hasMoreFilesValue = false;
       }
       setHasMoreFiles(hasMoreFilesValue);
-      setPwd((prevState) => {
-        const pwdCopy = [...prevState];
-        const lastPwd = pwdCopy[pwdCopy.length - 1];
-        lastPwd['offset'] = offset;
-        lastPwd['hasMoreFiles'] = hasMoreFilesValue;
-        lastPwd['parentId'] = parentId;
-        return pwdCopy;
-      });
+      // setPwd((prevState) => {
+      //   const pwdCopy = [...prevState];
+      //   const lastPwd = pwdCopy[pwdCopy.length - 1];
+      //   lastPwd['offset'] = offset;
+      //   lastPwd['hasMoreFiles'] = hasMoreFilesValue;
+      //   lastPwd['parentId'] = parentId;
+      //   return pwdCopy;
+      // });
 
       // if (!parentId) {
       //   setFilesMasterList((prev) => [
@@ -332,7 +319,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
     if (syncFilesResponse.status === 200) {
       const syncFilesResponseData = await syncFilesResponse.json();
-      console.log('[FileSelector] syncFiles: ', syncFilesResponseData);
       setSelectedFilesList([]);
 
       toast.success('Files synced successfully!');
@@ -356,7 +342,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
   const onBreadcrumbClick = (index) => {
     // Navigate to the clicked directory in the breadcrumb
     const newPwd = pwd.slice(0, index + 1);
-    console.log('[FileSelector] onBreadcrumbClick: ', newPwd);
     setPwd(newPwd);
     // Fetch data for the selected directory...
   };
@@ -391,7 +376,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
   // This function is called when the user scrolls to the bottom of the table.
   const loadMoreRows = async () => {
     if (!hasMoreFiles) return;
-    fetchUserFilesMetaData(parentId);
+    fetchUserFilesMetaData(parentId, offset);
   };
 
   // Table UI related
@@ -450,8 +435,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
   // Row UI related
   const fileCellRenderer = ({ cellData, rowData }) => {
-    // console.log('FileCellRenderer: ', cellData, rowData);
-
     // Getting the file name and extension
     const fileName = cellData;
     let fileExtension = '';
