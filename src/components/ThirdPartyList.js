@@ -89,8 +89,8 @@ const ThirdPartyList = ({ setActiveStep, activeIntegrations }) => {
         </div>
       </Dialog.Title>
 
-      <label class="relative block cc-w-full cc-my-4 cc-border-gray-500 cc-bg-gray-100 cc-py-1 cc-px-2">
-        <span class="sr-only">Search</span>
+      <label class="relative block cc-w-full cc-my-4 cc-border-gray-500 cc-bg-gray-100 cc-py-1 cc-px-2 cc-flex cc-flex-row">
+        {/* <span class="sr-only">Search</span> */}
         <span class="absolute inset-y-0 left-0 flex items-center pl-2">
           <HiSearch className="cc-w-4 cc-h-4" />
         </span>

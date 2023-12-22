@@ -571,8 +571,8 @@ const ThirdPartyHome = ({
                   {/* Common Action Bar */}
                   <div className="cc-flex cc-flex-row cc-h-6 cc-items-center cc-space-x-2 cc-w-full cc-px-2 cc-my-2 cc-justify-between">
                     {/* Search Input */}
-                    <label class="relative block cc-w-64">
-                      <span class="sr-only">Search</span>
+                    <label class="relative block cc-w-64  cc-flex cc-flex-row">
+                      {/* <span class="sr-only">Search</span> */}
                       <span class="absolute inset-y-0 left-0 flex items-center pl-2">
                         <HiSearch className="cc-w-4 cc-h-4" />
                       </span>
