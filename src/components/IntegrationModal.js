@@ -75,6 +75,8 @@ const IntegrationModal = ({
 
           response.push(onSuccessObject);
 
+          // TODO: Remove this once we have the BE code ready
+          // START
           const requestBody = {
             data_source_id: newIntegration.id,
           };
@@ -90,6 +92,7 @@ const IntegrationModal = ({
               body: JSON.stringify(requestBody),
             }
           );
+          // END
 
           if (
             newIntegration?.data_source_type === 'NOTION' ||
