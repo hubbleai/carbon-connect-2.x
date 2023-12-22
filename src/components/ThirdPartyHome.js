@@ -363,7 +363,9 @@ const ThirdPartyHome = ({
   };
 
   const toggleFileSelector = () => {
-    setShowFileSelector((prevShowFileSelector) => !prevShowFileSelector);
+    setShowFileSelector((prevShowFileSelector) => {
+      return !prevShowFileSelector;
+    });
   };
 
   const resyncDataSource = async () => {
@@ -481,7 +483,7 @@ const ThirdPartyHome = ({
               )
             ) : (
               <select
-                className="cc-py-2 cc-px-4 cc-text-xs cc-rounded-md cc-w-1/3 sm:cc-w-full md:cc-w-1/3 cc-truncate cc-text-left"
+                className="cc-py-2 cc-px-4 cc-text-xs cc-rounded-md cc-w-1/3 sm:cc-w-full md:cc-w-1/3 cc-truncate cc-text-left cc-bg-white cc-border cc-border-gray-300 cc-cursor-pointer"
                 onChange={async (e) => {
                   if (e.target.value === 'add-account') {
                     toast.info(
@@ -506,7 +508,9 @@ const ThirdPartyHome = ({
                   }
                 }}
               >
-                <option value="">Select Account</option>
+                <option value="" className="cc-bg-white">
+                  Select Account
+                </option>
                 {connected.map((account) => {
                   const connectedAccountEmail =
                     account.data_source_external_id.split('|')[1] ||
@@ -562,169 +566,154 @@ const ThirdPartyHome = ({
               </button>
             </div>
 
-            {activeTab === 'files' &&
-              (viewSelectedAccountData.synced_files.length === 0 ? (
-                <div className="cc-flex cc-flex-col cc-items-center cc-justify-center">
-                  <p className="cc-text-gray-500 cc-text-sm">No files synced</p>
-                </div>
-              ) : (
-                <div className="cc-w-full cc-flex cc-flex-col cc-space-y-2 cc-border-t cc-h-full cc-py-2">
-                  {/* Common Action Bar */}
-                  <div className="cc-flex cc-flex-row cc-h-6 cc-items-center cc-space-x-2 cc-w-full cc-px-2 cc-my-2 cc-justify-between">
-                    {/* Search Input */}
-                    <label class="relative block cc-w-64  cc-flex cc-flex-row">
-                      {/* <span class="sr-only">Search</span> */}
-                      <span class="absolute inset-y-0 left-0 flex items-center pl-2">
-                        <HiSearch className="cc-w-4 cc-h-4" />
-                      </span>
-                      <input
-                        class="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-gray-200 rounded-md py-1 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-0 sm:text-sm"
-                        placeholder="Search"
-                        type="text"
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                      />
-                    </label>
+            {activeTab === 'files' && (
+              <div className="cc-w-full cc-flex cc-flex-col cc-space-y-2 cc-border-t cc-h-full cc-py-2">
+                {/* Common Action Bar */}
+                <div className="cc-flex cc-flex-row cc-h-6 cc-items-center cc-space-x-2 cc-w-full cc-px-2 cc-my-2 cc-justify-between">
+                  {/* Search Input */}
+                  <label class="relative block cc-w-64  cc-flex cc-flex-row">
+                    {/* <span class="sr-only">Search</span> */}
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                      <HiSearch className="cc-w-4 cc-h-4" />
+                    </span>
+                    <input
+                      class="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-gray-200 rounded-md py-1 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-0 sm:text-sm"
+                      placeholder="Search"
+                      type="text"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                    />
+                  </label>
 
-                    {/* Switcher */}
-                    <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
-                      <button
-                        className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md
-                          ${
-                            showFileSelector
-                              ? ''
-                              : 'cc-bg-gray-300 cc-text-black'
-                          }
-                          `}
-                        onClick={() => {
-                          toggleFileSelector();
-                        }}
-                      >
-                        <CiCircleList className="cc-w-4 cc-h-4" />
-                      </button>
-                      <button
-                        className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md
-                          ${
-                            showFileSelector
-                              ? 'cc-bg-gray-300 cc-text-black'
-                              : ''
-                          }`}
-                        onClick={() => {
-                          toggleFileSelector();
-                        }}
-                      >
-                        <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
-                      </button>
-                    </div>
+                  {/* Switcher */}
+                  <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
+                    <button
+                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md
+                      ${showFileSelector ? '' : 'cc-bg-gray-300 cc-text-black'}
+                      `}
+                      onClick={() => {
+                        toggleFileSelector();
+                      }}
+                    >
+                      <CiCircleList className="cc-w-4 cc-h-4" />
+                    </button>
+                    <button
+                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md
+                      ${
+                        showFileSelector ? 'cc-bg-gray-300 cc-text-black' : ''
+                      }`}
+                      onClick={() => {
+                        toggleFileSelector();
+                      }}
+                    >
+                      <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
+                    </button>
                   </div>
-
-                  {showFileSelector ? (
-                    viewSelectedAccountData.synced_files.length === 0 ? (
-                      <div className="cc-flex cc-flex-col cc-items-center cc-justify-center">
-                        <p className="cc-text-gray-500 cc-text-sm">
-                          No files synced
-                        </p>
-                      </div>
-                    ) : (
-                      <FileSelector
-                        account={viewSelectedAccountData}
-                        searchQuery={searchQuery}
-                        files={files}
-                      />
-                    )
-                  ) : (
-                    <div className="cc-flex cc-w-full cc-grow cc-flex-col cc-pb-4">
-                      <InfiniteLoader
-                        isRowLoaded={isRowLoaded}
-                        loadMoreRows={loadMoreRows}
-                        rowCount={
-                          hasMoreFiles ? files.length + 1 : files.length
-                        }
-                      >
-                        {({ onRowsRendered, registerChild }) => (
-                          <AutoSizer>
-                            {({ width, height }) => {
-                              return (
-                                <div className="cc-flex cc-grow cc-w-full">
-                                  <Table
-                                    headerRowRenderer={headerRowRenderer}
-                                    width={width - 2 || 688}
-                                    height={height - 2 || 200}
-                                    // height={100}
-                                    headerHeight={20}
-                                    rowHeight={40}
-                                    // rowCount={sortedFiles.length}
-                                    // rowGetter={({ index }) => sortedFiles[index]}
-                                    rowCount={filteredFiles.length}
-                                    rowGetter={({ index }) =>
-                                      filteredFiles[index]
-                                    }
-                                    onRowsRendered={onRowsRendered}
-                                    ref={registerChild}
-                                    // onRowClick={({ index }) => {
-                                    //   // const selectedFile = sortedFiles[index];
-                                    //   const selectedFile = filteredFiles[index];
-                                    //   if (!selectedFile) return;
-                                    //   handleCheckboxChange(
-                                    //     selectedFile.id,
-                                    //     !selectedRows.has(selectedFile.id)
-                                    //   );
-                                    // }}
-                                    rowClassName={({ index }) => {
-                                      let className =
-                                        'cc-py-2 cc-pr-2 hover:cc-cursor-pointer hover:cc-bg-gray-50 cc-border-b cc-border-gray-200 cc-flex cc-flex-row cc-items-center cc-w-full cc-h-20';
-
-                                      // className +=
-                                      //   index % 2 === 0
-                                      //     ? 'cc-bg-white'
-                                      //     : 'cc-bg-gray-100';
-
-                                      return className;
-                                    }}
-                                    sort={sort}
-                                    sortBy={sortState.sortBy}
-                                    sortDirection={sortState.sortDirection}
-                                  >
-                                    <Column
-                                      label="File Name"
-                                      dataKey="name"
-                                      width={width / 3}
-                                      className="cc-text-xs"
-                                      headerRenderer={headerRenderer}
-                                      sortBy={sortState.sortBy}
-                                    />
-                                    <Column
-                                      label="Status"
-                                      dataKey="sync_status"
-                                      width={width / 4}
-                                      cellRenderer={statusCellRenderer}
-                                      headerRenderer={headerRenderer}
-                                    />
-                                    <Column
-                                      label="Last Sync Time"
-                                      dataKey="last_sync"
-                                      width={width / 4}
-                                      cellRenderer={dateCellRenderer}
-                                      headerRenderer={headerRenderer}
-                                    />
-                                    <Column
-                                      label=""
-                                      dataKey=""
-                                      width={50}
-                                      cellRenderer={resyncCellRenderer}
-                                      headerRenderer={() => <></>}
-                                    />
-                                  </Table>
-                                </div>
-                              );
-                            }}
-                          </AutoSizer>
-                        )}
-                      </InfiniteLoader>
-                    </div>
-                  )}
                 </div>
-              ))}
+
+                {showFileSelector ? (
+                  <FileSelector
+                    account={viewSelectedAccountData}
+                    searchQuery={searchQuery}
+                    files={files}
+                  />
+                ) : viewSelectedAccountData.synced_files.length === 0 ? (
+                  <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-grow">
+                    <p className="cc-text-gray-500 cc-text-sm">
+                      No files synced
+                    </p>
+                  </div>
+                ) : (
+                  <div className="cc-flex cc-w-full cc-grow cc-flex-col cc-pb-4">
+                    <InfiniteLoader
+                      isRowLoaded={isRowLoaded}
+                      loadMoreRows={loadMoreRows}
+                      rowCount={hasMoreFiles ? files.length + 1 : files.length}
+                    >
+                      {({ onRowsRendered, registerChild }) => (
+                        <AutoSizer>
+                          {({ width, height }) => {
+                            return (
+                              <div className="cc-flex cc-grow cc-w-full">
+                                <Table
+                                  headerRowRenderer={headerRowRenderer}
+                                  width={width - 2 || 688}
+                                  height={height - 2 || 200}
+                                  // height={100}
+                                  headerHeight={20}
+                                  rowHeight={40}
+                                  // rowCount={sortedFiles.length}
+                                  // rowGetter={({ index }) => sortedFiles[index]}
+                                  rowCount={filteredFiles.length}
+                                  rowGetter={({ index }) =>
+                                    filteredFiles[index]
+                                  }
+                                  onRowsRendered={onRowsRendered}
+                                  ref={registerChild}
+                                  // onRowClick={({ index }) => {
+                                  //   // const selectedFile = sortedFiles[index];
+                                  //   const selectedFile = filteredFiles[index];
+                                  //   if (!selectedFile) return;
+                                  //   handleCheckboxChange(
+                                  //     selectedFile.id,
+                                  //     !selectedRows.has(selectedFile.id)
+                                  //   );
+                                  // }}
+                                  rowClassName={({ index }) => {
+                                    let className =
+                                      'cc-py-2 cc-pr-2 hover:cc-cursor-pointer hover:cc-bg-gray-50 cc-border-b cc-border-gray-200 cc-flex cc-flex-row cc-items-center cc-w-full cc-h-20';
+
+                                    // className +=
+                                    //   index % 2 === 0
+                                    //     ? 'cc-bg-white'
+                                    //     : 'cc-bg-gray-100';
+
+                                    return className;
+                                  }}
+                                  sort={sort}
+                                  sortBy={sortState.sortBy}
+                                  sortDirection={sortState.sortDirection}
+                                >
+                                  <Column
+                                    label="File Name"
+                                    dataKey="name"
+                                    width={width / 3}
+                                    className="cc-text-xs"
+                                    headerRenderer={headerRenderer}
+                                    sortBy={sortState.sortBy}
+                                  />
+                                  <Column
+                                    label="Status"
+                                    dataKey="sync_status"
+                                    width={width / 4}
+                                    cellRenderer={statusCellRenderer}
+                                    headerRenderer={headerRenderer}
+                                  />
+                                  <Column
+                                    label="Last Sync Time"
+                                    dataKey="last_sync"
+                                    width={width / 4}
+                                    cellRenderer={dateCellRenderer}
+                                    headerRenderer={headerRenderer}
+                                  />
+                                  <Column
+                                    label=""
+                                    dataKey=""
+                                    width={50}
+                                    cellRenderer={resyncCellRenderer}
+                                    headerRenderer={() => <></>}
+                                  />
+                                </Table>
+                              </div>
+                            );
+                          }}
+                        </AutoSizer>
+                      )}
+                    </InfiniteLoader>
+                  </div>
+                )}
+              </div>
+            )}
 
             {activeTab === 'config' && (
               <div className="cc-flex cc-flex-row cc-w-full cc-border cc-rounded-md cc-border-gray-300 cc-mt-4 cc-px-4 cc-py-4 cc-items-center cc-space-x-4">

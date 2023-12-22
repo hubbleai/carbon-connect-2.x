@@ -122,7 +122,11 @@ const FileSelector = ({ account, searchQuery, files }) => {
       const lastPwd = pwd[pwd.length - 1];
 
       // We update the filesMasterList with the files data in this method.
-      // TODO: Add/Update offset and hasMoreFiles to fileMasterList as well.
+      // TODO: Add/Update offset and hasMoreFiles  to fileMasterList as well.
+      setOffset(lastPwd.offset);
+      setHasMoreFiles(lastPwd.hasMoreFiles);
+      setParentId(lastPwd.parentId);
+
       if (hasMoreFiles && shouldFetch) {
         fetchUserFilesMetaData(lastPwd.id, lastPwd.offset);
       }
@@ -154,9 +158,10 @@ const FileSelector = ({ account, searchQuery, files }) => {
       if (p.id === null) {
         continue;
       } else {
-        temp = temp.find((file) => file.id === p.id)?.children || [];
+        temp = temp.find((file) => file.external_id === p.id)?.children || [];
       }
     }
+
     setActiveFilesList(temp);
   }, [filesMasterList]);
 
@@ -203,7 +208,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
       const userFilesMetaData = await userFilesMetaDataResponse.json();
       const count = userFilesMetaData?.count;
       const userFiles = userFilesMetaData?.items;
-      console.log('Offset: ', offset);
       setOffset(offset + userFiles.length);
 
       let hasMoreFilesValue = true;
@@ -213,78 +217,68 @@ const FileSelector = ({ account, searchQuery, files }) => {
         hasMoreFilesValue = false;
       }
       setHasMoreFiles(hasMoreFilesValue);
-      // setPwd((prevState) => {
-      //   const pwdCopy = [...prevState];
-      //   const lastPwd = pwdCopy[pwdCopy.length - 1];
-      //   lastPwd['offset'] = offset;
-      //   lastPwd['hasMoreFiles'] = hasMoreFilesValue;
-      //   lastPwd['parentId'] = parentId;
-      //   return pwdCopy;
-      // });
 
-      // if (!parentId) {
-      //   setFilesMasterList((prev) => [
-      //     ...prev,
-      //     ...(userFilesMetaData?.items || []),
-      //   ]);
-      // } else {
-      //   // We are inside a folder. We have to append the files list to the children of the parent folder.
-      //   // We need to find the parent folder in the master files list and append the children to it.
-      //   let newFilesMasterList = [...filesMasterList];
-      //   let currentLevel = newFilesMasterList;
-      //   for (const dir of pwd.slice(1)) {
-      //     const folderIndex = currentLevel.findIndex((f) => f.id === dir.id);
-      //     if (folderIndex !== -1) {
-      //       if (!currentLevel[folderIndex].children) {
-      //         currentLevel[folderIndex].children = [];
-      //       }
-      //       if (dir.id === parentId) {
-      //         currentLevel[folderIndex].children = [
-      //           ...currentLevel[folderIndex].children,
-      //           ...userFiles,
-      //         ];
-      //         break;
-      //       }
-      //       currentLevel = currentLevel[folderIndex].children;
-      //     }
-      //   }
-      //   setFilesMasterList(newFilesMasterList);
-      // }
-      updateFileSelectorViewData(userFilesMetaData, userFiles, parentId);
+      updateFileSelectorViewData(
+        userFilesMetaData,
+        userFiles,
+        parentId,
+        offset
+      );
     }
   };
 
   const updateFileSelectorViewData = (
     userFilesMetaData = {},
     userFiles = [],
-    parentId = null
+    parentId = null,
+    offset = 0
   ) => {
     if (!parentId) {
-      setFilesMasterList((prev) => [
-        ...prev,
-        ...(userFilesMetaData?.items || []),
-      ]);
+      setFilesMasterList((prev) => {
+        const newItems = userFilesMetaData?.items || [];
+        const updatedItems = newItems.filter(
+          (newItem) => !prev.some((prevItem) => prevItem.id === newItem.id)
+        );
+        return [...prev, ...updatedItems];
+      });
     } else {
       // We are inside a folder. We have to append the files list to the children of the parent folder.
       // We need to find the parent folder in the master files list and append the children to it.
+
       let newFilesMasterList = [...filesMasterList];
       let currentLevel = newFilesMasterList;
+
       for (const dir of pwd.slice(1)) {
-        const folderIndex = currentLevel.findIndex((f) => f.id === dir.id);
+        const folderIndex = currentLevel.findIndex(
+          (f) => f.external_id === dir.id
+        );
+
         if (folderIndex !== -1) {
           if (!currentLevel[folderIndex].children) {
             currentLevel[folderIndex].children = [];
           }
+
           if (dir.id === parentId) {
-            currentLevel[folderIndex].children = [
-              ...currentLevel[folderIndex].children,
-              ...userFiles,
-            ];
+            const newChildren = userFiles.filter(
+              (newUserFile) =>
+                !currentLevel[folderIndex].children.some(
+                  (existingFile) => existingFile.id === newUserFile.id
+                )
+            );
+
+            if (offset === 0)
+              currentLevel[folderIndex].children = [...newChildren];
+            else
+              currentLevel[folderIndex].children = [
+                ...currentLevel[folderIndex].children,
+                ...newChildren,
+              ];
             break;
           }
           currentLevel = currentLevel[folderIndex].children;
         }
       }
+
       setFilesMasterList(newFilesMasterList);
     }
   };
@@ -342,6 +336,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
   const onBreadcrumbClick = (index) => {
     // Navigate to the clicked directory in the breadcrumb
     const newPwd = pwd.slice(0, index + 1);
+
     setPwd(newPwd);
     // Fetch data for the selected directory...
   };
@@ -508,8 +503,9 @@ const FileSelector = ({ account, searchQuery, files }) => {
         lastPwd['offset'] = offset;
         lastPwd['hasMoreFiles'] = hasMoreFiles;
         lastPwd['parentId'] = parentId;
+
         pwdCopy.push({
-          id: rowData.id,
+          id: rowData.external_id,
           name: rowData.name,
           offset: 0,
           hasMoreFiles: true,
@@ -520,6 +516,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
       });
       setOffset(0);
       setHasMoreFiles(true);
+      setParentId(rowData.external_id);
     }
   };
 
