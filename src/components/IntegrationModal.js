@@ -75,6 +75,22 @@ const IntegrationModal = ({
 
           response.push(onSuccessObject);
 
+          const requestBody = {
+            data_source_id: newIntegration.id,
+          };
+
+          authenticatedFetch(
+            `${BASE_URL[environment]}/integrations/items/sync`,
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Token ${accessToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(requestBody),
+            }
+          );
+
           if (
             newIntegration?.data_source_type === 'NOTION' ||
             newIntegration?.data_source_type === 'INTERCOM'
