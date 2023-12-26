@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { BASE_URL } from '../constants';
+import {
+  getUserFiles,
+  revokeAccessToDataSource,
+  generateOauthurl,
+  resyncFile,
+} from 'carbon-connect-js';
+import { BASE_URL, onSuccessEvents } from '../constants';
 import { useCarbon } from '../contexts/CarbonContext';
 import {
   Table,
@@ -8,15 +14,21 @@ import {
   AutoSizer,
   SortDirection,
 } from 'react-virtualized';
-import { CiFolderOn, CiFileOn, CiDatabase, CiMemoPad } from 'react-icons/ci';
-import { HiChevronDown, HiChevronRight, HiChevronUp } from 'react-icons/hi';
+import { CiFolderOn, CiFileOn } from 'react-icons/ci';
+import {
+  HiChevronDown,
+  HiChevronRight,
+  HiChevronUp,
+  HiDocument,
+  HiFolder,
+} from 'react-icons/hi';
 import { toast } from 'react-toastify';
-import { LuLoader, LuLoader2 } from 'react-icons/lu';
 
 const FileSelector = ({ account, searchQuery, files }) => {
   const {
     accessToken,
     processedIntegrations,
+    entryPoint,
     authenticatedFetch,
     environment,
     topLevelChunkSize,
@@ -116,15 +128,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
       setParentId(lastPwd.parentId);
 
       if (hasMoreFiles && shouldFetch) {
-        const updateLoader = activeFilesList.length === 0;
-        console.log('updateLoader: ', updateLoader);
-        if (updateLoader) {
-          setIsLoading(true);
-        }
         fetchUserFilesMetaData(lastPwd.id, lastPwd.offset);
-        if (updateLoader) {
-          setIsLoading(false);
-        }
       }
 
       updateFileSelectorViewData();
@@ -142,6 +146,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
     ]);
     setSelectedFilesList([]);
     setShouldFetch(true);
+    // fetchUserFilesMetaData(null, 0);
   }, [account]);
 
   // Once the files data is fetched, we set the active files list to the master list.
@@ -430,34 +435,25 @@ const FileSelector = ({ account, searchQuery, files }) => {
     let fileExtension = '';
     let fileNameWithoutExtension = fileName;
 
-    let icon = null;
-
-    const itemType = rowData.item_type;
-    if (itemType === 'FILE') {
-      icon = <CiFileOn className="cc-w-5 cc-h-5 cc-text-gray-500" />;
-    } else if (itemType === 'FOLDER') {
-      icon = <CiFolderOn className="cc-w-5 cc-h-5 cc-text-yellow-500" />;
-    } else if (itemType === 'DATABASE') {
-      icon = <CiDatabase className="cc-w-5 cc-h-5 cc-text-blue-500" />;
-    } else if (itemType === 'PAGE') {
-      icon = <CiMemoPad className="cc-w-5 cc-h-5 cc-text-green-500" />;
+    // Checking if the file is a folder
+    const isFolder = rowData.is_expandable;
+    if (!isFolder) {
+      fileExtension = fileName.split('.').pop();
+      fileNameWithoutExtension = fileName.replace(`.${fileExtension}`, '');
     }
 
-    if (!icon) {
-      const isFolder = rowData.is_expandable;
-      if (isFolder) {
-        icon = <CiFolderOn className="cc-w-5 cc-h-5 cc-text-yellow-500" />;
-      } else {
-        fileExtension = fileName.split('.').pop();
-        fileNameWithoutExtension = fileName.replace(`.${fileExtension}`, '');
-
-        icon = <CiFileOn className="cc-w-5 cc-h-5 cc-text-gray-500" />;
-      }
-    }
+    // Getting file name without extension
+    // const fileNameWithoutExtension = fileName.replace(`.${fileExtension}`, '');
 
     return (
       <div className="cc-flex cc-items-center cc-space-x-2 cc-text-left cc-text-xs cc-font-normal cc-py-1 cc-capitalize cc-px-1">
-        <span className="cc-flex cc-items-center cc-space-x-2">{icon}</span>
+        <span className="cc-flex cc-items-center cc-space-x-2">
+          {isFolder ? (
+            <CiFolderOn className="cc-w-5 cc-h-5 cc-text-yellow-500" />
+          ) : (
+            <CiFileOn className="cc-w-5 cc-h-5 cc-text-gray-500" />
+          )}
+        </span>
         <span>{fileNameWithoutExtension}</span>
       </div>
     );
@@ -554,98 +550,84 @@ const FileSelector = ({ account, searchQuery, files }) => {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-h-full">
-          <LuLoader2 className="cc-w-8 cc-h-8 cc-animate-spin" />
-        </div>
-      ) : filteredFilesList.length === 0 ? (
-        <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-h-full">
-          <h1 className="cc-text-lg cc-font-medium cc-text-gray-500">
-            No files found!
-          </h1>
-        </div>
-      ) : (
-        <InfiniteLoader
-          isRowLoaded={isRowLoaded}
-          loadMoreRows={loadMoreRows}
-          rowCount={
-            // Check which list to be used here!
-            hasMoreFiles ? filesMasterList.length + 1 : filesMasterList.length
-          }
-        >
-          {({ onRowsRendered, registerChild }) => (
-            <AutoSizer>
-              {({ width, height }) => {
-                return (
-                  <div className="cc-flex cc-grow cc-w-full cc-h-full">
-                    <Table
-                      headerRowRenderer={headerRowRenderer}
-                      width={width - 2 || 688}
-                      height={height - 2 || 200}
-                      headerHeight={20}
-                      rowHeight={40}
-                      rowCount={filteredFilesList.length}
-                      rowGetter={({ index }) => filteredFilesList[index]}
-                      onRowsRendered={onRowsRendered}
-                      ref={registerChild}
-                      onRowClick={onRowSingleClick}
-                      onRowDoubleClick={onRowDoubleClick}
-                      rowClassName={({ index }) => {
-                        let className =
-                          'cc-py-2 cc-pr-2 hover:cc-cursor-pointer hover:cc-bg-gray-50 cc-border-b cc-border-gray-200 cc-flex cc-flex-row cc-items-center cc-w-full cc-h-20';
+      <InfiniteLoader
+        isRowLoaded={isRowLoaded}
+        loadMoreRows={loadMoreRows}
+        rowCount={
+          // Check which list to be used here!
+          hasMoreFiles ? filesMasterList.length + 1 : filesMasterList.length
+        }
+      >
+        {({ onRowsRendered, registerChild }) => (
+          <AutoSizer>
+            {({ width, height }) => {
+              return (
+                <div className="cc-flex cc-grow cc-w-full cc-h-full">
+                  <Table
+                    headerRowRenderer={headerRowRenderer}
+                    width={width - 2 || 688}
+                    height={height - 2 || 200}
+                    headerHeight={20}
+                    rowHeight={40}
+                    rowCount={filteredFilesList.length}
+                    rowGetter={({ index }) => filteredFilesList[index]}
+                    onRowsRendered={onRowsRendered}
+                    ref={registerChild}
+                    onRowClick={onRowSingleClick}
+                    onRowDoubleClick={onRowDoubleClick}
+                    rowClassName={({ index }) => {
+                      let className =
+                        'cc-py-2 cc-pr-2 hover:cc-cursor-pointer hover:cc-bg-gray-50 cc-border-b cc-border-gray-200 cc-flex cc-flex-row cc-items-center cc-w-full cc-h-20';
 
-                        if (
-                          selectedFilesList.includes(
-                            filteredFilesList[index]?.id
-                          )
-                        )
-                          className += ' cc-bg-blue-100';
-                        else className += ' cc-bg-white';
+                      if (
+                        selectedFilesList.includes(filteredFilesList[index]?.id)
+                      )
+                        className += ' cc-bg-blue-100';
+                      else className += ' cc-bg-white';
 
-                        return className;
-                      }}
-                      sort={sort}
+                      return className;
+                    }}
+                    sort={sort}
+                    sortBy={sortState.sortBy}
+                    sortDirection={sortState.sortDirection}
+                  >
+                    <Column
+                      label="Name"
+                      dataKey="name"
+                      width={(3 * width) / 4}
+                      className="cc-text-xs cc-ml-1"
+                      headerRenderer={headerRenderer}
+                      cellRenderer={fileCellRenderer}
                       sortBy={sortState.sortBy}
-                      sortDirection={sortState.sortDirection}
-                    >
-                      <Column
-                        label="Name"
-                        dataKey="name"
-                        width={(3 * width) / 4}
-                        className="cc-text-xs cc-ml-1"
-                        headerRenderer={headerRenderer}
-                        cellRenderer={fileCellRenderer}
-                        sortBy={sortState.sortBy}
-                      />
-                      {/* <Column
+                    />
+                    {/* <Column
                     label="Status"
                     dataKey="sync_status"
                     width={width / 4}
                     // cellRenderer={statusCellRenderer}
                     headerRenderer={headerRenderer}
                   /> */}
-                      <Column
-                        label="Created At"
-                        dataKey="created_at"
-                        width={width / 4}
-                        cellRenderer={dateCellRenderer}
-                        headerRenderer={headerRenderer}
-                      />
-                      {/* <Column
+                    <Column
+                      label="Created At"
+                      dataKey="created_at"
+                      width={width / 4}
+                      cellRenderer={dateCellRenderer}
+                      headerRenderer={headerRenderer}
+                    />
+                    {/* <Column
                     label=""
                     dataKey=""
                     width={50}
                     // cellRenderer={resyncCellRenderer}
                     headerRenderer={() => <></>}
                   /> */}
-                    </Table>
-                  </div>
-                );
-              }}
-            </AutoSizer>
-          )}
-        </InfiniteLoader>
-      )}
+                  </Table>
+                </div>
+              );
+            }}
+          </AutoSizer>
+        )}
+      </InfiniteLoader>
     </div>
   );
 };

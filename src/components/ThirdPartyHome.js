@@ -125,6 +125,12 @@ const ThirdPartyHome = ({
     setFilteredFiles(getFilteredFiles());
   }, [sortedFiles, searchQuery]);
 
+  useEffect(() => {
+    if (!showFileSelector && viewSelectedAccountData?.id) {
+      loadMoreRows();
+    }
+  }, [showFileSelector]);
+
   const loadMoreRows = async () => {
     const userFilesResponse = await getUserFiles({
       accessToken: accessToken,
@@ -366,6 +372,7 @@ const ThirdPartyHome = ({
     setShowFileSelector((prevShowFileSelector) => {
       return !prevShowFileSelector;
     });
+    setSearchQuery('');
   };
 
   const resyncDataSource = async () => {
