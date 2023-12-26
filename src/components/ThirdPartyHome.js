@@ -100,7 +100,7 @@ const ThirdPartyHome = ({
     );
     setConnected(connected);
 
-    if (connected.length === 1) {
+    if (connected.length === 1 && viewSelectedAccountData === null) {
       setViewSelectedAccountData(connected[0]);
     }
   }, [activeIntegrations]);

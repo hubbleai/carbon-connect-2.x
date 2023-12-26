@@ -12,6 +12,20 @@ import { CiFolderOn, CiFileOn, CiDatabase, CiMemoPad } from 'react-icons/ci';
 import { HiChevronDown, HiChevronRight, HiChevronUp } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 import { LuLoader, LuLoader2 } from 'react-icons/lu';
+import {
+  BsFiletypeCsv,
+  BsFiletypeDocx,
+  BsFiletypeJpg,
+  BsFiletypeJson,
+  BsFiletypeMp3,
+  BsFiletypePdf,
+  BsFiletypePng,
+  BsFiletypePptx,
+  BsFiletypeTxt,
+  BsFiletypeWav,
+  BsFiletypeXlsx,
+  BsMarkdownFill,
+} from 'react-icons/bs';
 
 const FileSelector = ({ account, searchQuery, files }) => {
   const {
@@ -117,7 +131,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
       if (hasMoreFiles && shouldFetch) {
         const updateLoader = activeFilesList.length === 0;
-        console.log('updateLoader: ', updateLoader);
         if (updateLoader) {
           setIsLoading(true);
         }
@@ -434,7 +447,35 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
     const itemType = rowData.item_type;
     if (itemType === 'FILE') {
-      icon = <CiFileOn className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      fileExtension = fileName.split('.').pop();
+
+      if (fileExtension === 'pdf')
+        icon = <BsFiletypePdf className="cc-w-5 cc-h-5 cc-text-red-500" />;
+      else if (fileExtension === 'csv')
+        icon = <BsFiletypeCsv className="cc-w-5 cc-h-5 cc-text-green-700" />;
+      else if (fileExtension === 'docx')
+        icon = <BsFiletypeDocx className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      else if (fileExtension === 'txt')
+        icon = <BsFiletypeTxt className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      else if (fileExtension === 'xlsx')
+        icon = <BsFiletypeXlsx className="cc-w-5 cc-h-5 cc-text-green-700" />;
+      else if (fileExtension === 'mp3')
+        icon = <BsFiletypeMp3 className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      else if (fileExtension === 'wav')
+        icon = <BsFiletypeWav className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      else if (fileExtension === 'png')
+        icon = <BsFiletypePng className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      else if (fileExtension === 'jpg')
+        icon = <BsFiletypeJpg className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      else if (fileExtension === 'json')
+        icon = <BsFiletypeJson className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      else if (fileExtension === 'md')
+        icon = <BsMarkdownFill className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      else if (fileExtension === 'pptx')
+        icon = <BsFiletypePptx className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+      else icon = <CiFileOn className="cc-w-5 cc-h-5 cc-text-gray-500" />;
+
+      fileNameWithoutExtension = fileName.replace(`.${fileExtension}`, '');
     } else if (itemType === 'FOLDER') {
       icon = <CiFolderOn className="cc-w-5 cc-h-5 cc-text-yellow-500" />;
     } else if (itemType === 'DATABASE') {
@@ -554,11 +595,13 @@ const FileSelector = ({ account, searchQuery, files }) => {
         </div>
       </div>
 
-      {isLoading ? (
+      {/* isLoading ? (
         <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-h-full">
           <LuLoader2 className="cc-w-8 cc-h-8 cc-animate-spin" />
         </div>
-      ) : filteredFilesList.length === 0 ? (
+      ) :  */}
+
+      {activeFilesList.length === 0 ? (
         <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-h-full">
           <h1 className="cc-text-lg cc-font-medium cc-text-gray-500">
             No files found!
@@ -592,15 +635,15 @@ const FileSelector = ({ account, searchQuery, files }) => {
                       onRowDoubleClick={onRowDoubleClick}
                       rowClassName={({ index }) => {
                         let className =
-                          'cc-py-2 cc-pr-2 hover:cc-cursor-pointer hover:cc-bg-gray-50 cc-border-b cc-border-gray-200 cc-flex cc-flex-row cc-items-center cc-w-full cc-h-20';
+                          'cc-py-2 cc-pr-2 hover:cc-cursor-pointer cc-border-b cc-border-gray-200 cc-flex cc-flex-row cc-items-center cc-w-full cc-h-20';
 
                         if (
                           selectedFilesList.includes(
-                            filteredFilesList[index]?.id
+                            filteredFilesList[index]?.external_id
                           )
                         )
-                          className += ' cc-bg-blue-100';
-                        else className += ' cc-bg-white';
+                          className += ' cc-bg-blue-100 hover:cc-bg-blue-200';
+                        else className += ' cc-bg-white hover:cc-bg-gray-50';
 
                         return className;
                       }}
