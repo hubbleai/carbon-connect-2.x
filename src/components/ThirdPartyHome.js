@@ -99,6 +99,10 @@ const ThirdPartyHome = ({
       (integration) => integration.data_source_type === integrationName
     );
     setConnected(connected);
+
+    if (connected.length === 1) {
+      setViewSelectedAccountData(connected[0]);
+    }
   }, [activeIntegrations]);
 
   // TODO: This useEffect will be removed when we enable multiple accounts for all integrations
@@ -526,6 +530,11 @@ const ThirdPartyHome = ({
                     <option
                       key={account.id}
                       value={account.data_source_external_id}
+                      selected={
+                        viewSelectedAccountData?.id === account.id
+                          ? 'selected'
+                          : ''
+                      }
                     >
                       {connectedAccountEmail}
                     </option>
