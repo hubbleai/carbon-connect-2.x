@@ -1,46 +1,58 @@
-import React, { useState, ReactNode } from 'react';
-import './index.css';
+import React, { useState, ReactNode } from "react";
+import "./index.css";
 
 // @ts-ignore
-import IntegrationModal from './components/IntegrationModal';
+import IntegrationModal from "./components/IntegrationModal";
 
 // @ts-ignore
-import { CarbonProvider } from './contexts/CarbonContext';
+import { CarbonProvider } from "./contexts/CarbonContext";
 
 // Enums
 export enum ActionType {
-  INITIATE = 'INITIATE',
-  ADD = 'ADD',
-  UPDATE = 'UPDATE',
-  CANCEL = 'CANCEL',
+  INITIATE = "INITIATE",
+  ADD = "ADD",
+  UPDATE = "UPDATE",
+  CANCEL = "CANCEL",
 }
 
 export enum IntegrationName {
-  LOCAL_FILES = 'LOCAL_FILES',
-  NOTION = 'NOTION',
-  WEB_SCRAPER = 'WEB_SCRAPER',
-  GOOGLE_DRIVE = 'GOOGLE_DRIVE',
-  INTERCOM = 'INTERCOM',
-  DROPBOX = 'DROPBOX',
-  ONEDRIVE = 'ONEDRIVE',
-  BOX = 'BOX',
-  ZENDESK = 'ZENDESK',
-  SHAREPOINT = 'SHAREPOINT',
-  ZOTERO = 'ZOTERO',
-  CONFLUENCE = 'CONFLUENCE',
+  LOCAL_FILES = "LOCAL_FILES",
+  NOTION = "NOTION",
+  WEB_SCRAPER = "WEB_SCRAPER",
+  GOOGLE_DRIVE = "GOOGLE_DRIVE",
+  INTERCOM = "INTERCOM",
+  DROPBOX = "DROPBOX",
+  ONEDRIVE = "ONEDRIVE",
+  BOX = "BOX",
+  ZENDESK = "ZENDESK",
+  SHAREPOINT = "SHAREPOINT",
+  ZOTERO = "ZOTERO",
+  CONFLUENCE = "CONFLUENCE",
+  FRESHDESK = "FRESHDESK",
+  GITBOOK = "GITBOOK",
+  GMAIL = "GMAIL",
 }
 
 export enum SyncStatus {
-  READY = 'READY',
-  QUEUED_FOR_SYNCING = 'QUEUED_FOR_SYNCING',
-  SYNCING = 'SYNCING',
-  SYNC_ERROR = 'SYNC_ERROR',
+  READY = "READY",
+  QUEUED_FOR_SYNCING = "QUEUED_FOR_SYNCING",
+  SYNCING = "SYNCING",
+  SYNC_ERROR = "SYNC_ERROR",
+}
+
+export enum FilePickerMode {
+  FILES = "FILES",
+  FOLDERS = "FOLDERS",
+  BOTH = "BOTH",
 }
 
 export interface FileType {
   extension: string;
   chunkSize?: number;
   overlapSize?: number;
+  setPageAsBoundary?: boolean;
+  useOcr?: boolean;
+  generateSparseVectors?: boolean;
 }
 export interface BaseIntegration {
   id: IntegrationName;
@@ -48,16 +60,26 @@ export interface BaseIntegration {
   overlapSize?: number;
   skipEmbeddingGeneration?: boolean;
   enableAutoSync?: boolean;
+  generateSparseVectors?: boolean;
+  prependFilenameToChunks?: boolean;
+  maxItemsPerChunk?: number;
+  syncFilesOnConnection?: boolean;
 }
 export interface LocalFilesIntegration extends BaseIntegration {
   maxFileSize: number;
   allowMultipleFiles: boolean;
   maxFilesCount?: number;
   allowedFileTypes?: FileType[];
+  setPageAsBoundary?: boolean;
+  filePickerMode?: FilePickerMode;
+  useOcr?: boolean;
 }
 export interface WebScraperIntegration extends BaseIntegration {
   recursionDepth?: number;
   maxPagesToScrape?: number;
+  htmlTagsToSkip?: string[];
+  cssClassesToSkip?: string[];
+  cssSelectorsToSkip?: string[];
 }
 
 export type Integration =
@@ -131,6 +153,12 @@ export interface OnErrorData {
 
 export type TagValue = string | number | string[] | number[];
 
+type EmbeddingModel =
+  | "OPENAI"
+  | "AZURE_OPENAI"
+  | "COHERE_MULTILINGUAL_V3"
+  | "VERTEX_MULTIMODAL";
+
 export interface CarbonConnectProps {
   orgName: string;
   brandIcon: string;
@@ -159,6 +187,10 @@ export interface CarbonConnectProps {
   backButtonText?: string;
   zIndex?: number;
   enableToasts?: boolean;
+  embeddingModel?: EmbeddingModel;
+  generateSparseVectors?: boolean;
+  prependFilenameToChunks?: boolean;
+  maxItemsPerChunk?: number;
 }
 
 const CarbonConnect: React.FC<CarbonConnectProps> = ({
@@ -170,48 +202,54 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
   onError = () => {},
   tags = [],
   maxFileSize = 20000000,
-  environment = 'PRODUCTION',
+  environment = "PRODUCTION",
   entryPoint = null,
   enabledIntegrations = [
     {
-      id: 'LOCAL_FILES',
+      id: "LOCAL_FILES",
       chunkSize: 100,
       overlapSize: 10,
       maxFileSize: 20000000,
       allowMultipleFiles: true,
       skipEmbeddingGeneration: false,
+      setPageAsBoundary: false,
+      filePickerMode: "FILES",
       allowedFileTypes: [
         {
-          extension: 'csv',
+          extension: "csv",
         },
         {
-          extension: 'txt',
+          extension: "txt",
         },
         {
-          extension: 'pdf',
+          extension: "pdf",
         },
       ],
     },
   ],
-  primaryBackgroundColor = '#000000',
-  primaryTextColor = '#FFFFFF',
-  secondaryBackgroundColor = '#FFFFFF',
-  secondaryTextColor = '#000000',
+  primaryBackgroundColor = "#000000",
+  primaryTextColor = "#FFFFFF",
+  secondaryBackgroundColor = "#FFFFFF",
+  secondaryTextColor = "#000000",
   allowMultipleFiles = false,
   open = false,
   setOpen = null,
   chunkSize = 1500,
   overlapSize = 20,
-  tosURL = 'https://carbon.ai/terms',
-  privacyPolicyURL = 'https://carbon.ai/privacy',
+  tosURL = "https://carbon.ai/terms",
+  privacyPolicyURL = "https://carbon.ai/privacy",
   alwaysOpen = false,
   navigateBackURL = null,
-  backButtonText = 'Go Back',
+  backButtonText = "Go Back",
   zIndex = 1000,
   enableToasts = true,
+  embeddingModel = "OPENAI",
+  generateSparseVectors = false,
+  prependFilenameToChunks = false,
+  maxItemsPerChunk = null,
 }) => {
   const [activeStep, setActiveStep] = useState<string | number>(
-    entryPoint === 'LOCAL_FILES' || entryPoint === 'WEB_SCRAPER'
+    entryPoint === "LOCAL_FILES" || entryPoint === "WEB_SCRAPER"
       ? entryPoint
       : 0
   );
@@ -246,6 +284,10 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       backButtonText={backButtonText}
       enableToasts={enableToasts}
       zIndex={zIndex}
+      embeddingModel={embeddingModel}
+      generateSparseVectors={generateSparseVectors}
+      prependFilenameToChunks={prependFilenameToChunks}
+      maxItemsPerChunk={maxItemsPerChunk}
     >
       <IntegrationModal
         orgName={orgName}

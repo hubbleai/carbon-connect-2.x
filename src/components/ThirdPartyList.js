@@ -70,6 +70,8 @@ const ThirdPartyList = ({ setActiveStep, activeIntegrations }) => {
   const { processedIntegrations, manageModalOpenState, primaryTextColor } =
     useCarbon();
 
+  console.log(processedIntegrations)
+
   return (
     <div className="cc-flex cc-flex-col cc-h-full cc-items-center cc-px-4 cc-py-6">
       <Dialog.Title className="cc-text-lg cc-font-medium cc-w-full">

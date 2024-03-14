@@ -8,7 +8,7 @@ import { SiZendesk } from 'react-icons/si';
 import { toast } from 'react-toastify';
 
 import '../index.css';
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
@@ -44,6 +44,10 @@ function ZendeskScreen({ buttonColor, labelColor }) {
     onError,
     primaryBackgroundColor,
     primaryTextColor,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -58,6 +62,15 @@ function ZendeskScreen({ buttonColor, labelColor }) {
       const overlapSize =
         service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
       const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
+      const embeddingModelValue =
+        service?.embeddingModel || embeddingModel || null;
+      const generateSparseVectorsValue =
+        service?.generateSparseVectors || generateSparseVectors || false;
+      const prependFilenameToChunksValue =
+        service?.prependFilenameToChunks || prependFilenameToChunks || false;
+      const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
+      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
+
       const subdomain = zendeskSubdomain
         .replace('https://www.', '')
         .replace('http://www.', '')
@@ -74,6 +87,11 @@ function ZendeskScreen({ buttonColor, labelColor }) {
         chunk_overlap: overlapSize,
         skip_embedding_generation: skipEmbeddingGeneration,
         zendesk_subdomain: subdomain,
+        embedding_model: embeddingModelValue,
+        generate_sparse_vectors: generateSparseVectorsValue,
+        prepend_filename_to_chunks: prependFilenameToChunksValue,
+        ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+        sync_files_on_connection: syncFilesOnConnection
       };
 
       const response = await authenticatedFetch(

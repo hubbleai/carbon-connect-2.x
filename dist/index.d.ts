@@ -1,5 +1,5 @@
-import React, { ReactNode } from 'react';
-import './index.css';
+import React, { ReactNode } from "react";
+import "./index.css";
 export declare enum ActionType {
     INITIATE = "INITIATE",
     ADD = "ADD",
@@ -18,7 +18,10 @@ export declare enum IntegrationName {
     ZENDESK = "ZENDESK",
     SHAREPOINT = "SHAREPOINT",
     ZOTERO = "ZOTERO",
-    CONFLUENCE = "CONFLUENCE"
+    CONFLUENCE = "CONFLUENCE",
+    FRESHDESK = "FRESHDESK",
+    GITBOOK = "GITBOOK",
+    GMAIL = "GMAIL"
 }
 export declare enum SyncStatus {
     READY = "READY",
@@ -26,10 +29,18 @@ export declare enum SyncStatus {
     SYNCING = "SYNCING",
     SYNC_ERROR = "SYNC_ERROR"
 }
+export declare enum FilePickerMode {
+    FILES = "FILES",
+    FOLDERS = "FOLDERS",
+    BOTH = "BOTH"
+}
 export interface FileType {
     extension: string;
     chunkSize?: number;
     overlapSize?: number;
+    setPageAsBoundary?: boolean;
+    useOcr?: boolean;
+    generateSparseVectors?: boolean;
 }
 export interface BaseIntegration {
     id: IntegrationName;
@@ -37,16 +48,26 @@ export interface BaseIntegration {
     overlapSize?: number;
     skipEmbeddingGeneration?: boolean;
     enableAutoSync?: boolean;
+    generateSparseVectors?: boolean;
+    prependFilenameToChunks?: boolean;
+    maxItemsPerChunk?: number;
+    syncFilesOnConnection?: boolean;
 }
 export interface LocalFilesIntegration extends BaseIntegration {
     maxFileSize: number;
     allowMultipleFiles: boolean;
     maxFilesCount?: number;
     allowedFileTypes?: FileType[];
+    setPageAsBoundary?: boolean;
+    filePickerMode?: FilePickerMode;
+    useOcr?: boolean;
 }
 export interface WebScraperIntegration extends BaseIntegration {
     recursionDepth?: number;
     maxPagesToScrape?: number;
+    htmlTagsToSkip?: string[];
+    cssClassesToSkip?: string[];
+    cssSelectorsToSkip?: string[];
 }
 export type Integration = LocalFilesIntegration | WebScraperIntegration | BaseIntegration;
 export interface LocalFile {
@@ -105,6 +126,7 @@ export interface OnErrorData {
     data?: object;
 }
 export type TagValue = string | number | string[] | number[];
+type EmbeddingModel = "OPENAI" | "AZURE_OPENAI" | "COHERE_MULTILINGUAL_V3" | "VERTEX_MULTIMODAL";
 export interface CarbonConnectProps {
     orgName: string;
     brandIcon: string;
@@ -135,6 +157,10 @@ export interface CarbonConnectProps {
     backButtonText?: string;
     zIndex?: number;
     enableToasts?: boolean;
+    embeddingModel?: EmbeddingModel;
+    generateSparseVectors?: boolean;
+    prependFilenameToChunks?: boolean;
+    maxItemsPerChunk?: number;
 }
 declare const CarbonConnect: React.FC<CarbonConnectProps>;
 export { CarbonConnect };

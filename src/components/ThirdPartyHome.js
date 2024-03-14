@@ -18,10 +18,9 @@ import {
 import {
   getUserFiles,
   revokeAccessToDataSource,
-  generateOauthurl,
   resyncFile,
 } from 'carbon-connect-js';
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT, TWO_STEP_OAUTH_CONNECTORS } from '../constants';
 import { VscDebugDisconnect, VscLoading, VscSync } from 'react-icons/vsc';
 import { IoCloudUploadOutline } from 'react-icons/io5';
 import { CiCircleList } from 'react-icons/ci';
@@ -76,6 +75,11 @@ const ThirdPartyHome = ({
     topLevelOverlapSize,
     defaultChunkSize,
     defaultOverlapSize,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk,
+    onSuccess
   } = useCarbon();
 
   // Fetching the active service data
@@ -108,7 +112,7 @@ const ThirdPartyHome = ({
   // TODO: This useEffect will be removed when we enable multiple accounts for all integrations
   useEffect(() => {
     if (integrationName === 'NOTION') setCanConnectMore(true);
-    else if (connected.length !== 0) setCanConnectMore(false);
+    // else if (connected.length !== 0) setCanConnectMore(false);
     else setCanConnectMore(true);
 
     setIsLoading(false);
@@ -228,8 +232,8 @@ const ThirdPartyHome = ({
           {cellData === 'READY'
             ? 'Ready'
             : cellData === 'SYNC_ERROR'
-            ? 'Error'
-            : 'In Progress'}
+              ? 'Error'
+              : 'In Progress'}
         </span>
       </span>
     );
@@ -331,31 +335,78 @@ const ThirdPartyHome = ({
     setSortState({ sortBy, sortDirection });
   };
 
-  const handleNewAccountClick = async () => {
-    const chunkSize =
-      service?.chunkSize || topLevelChunkSize || defaultChunkSize;
-    const overlapSize =
-      service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
-    const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
-
-    const generateOauthUrlResponse = await generateOauthurl({
-      accessToken: accessToken,
-      integrationName: integrationName,
-      environment: environment,
-      chunkSize: chunkSize,
-      chunkOverlap: overlapSize,
-      skipEmbeddingGeneration: skipEmbeddingGeneration,
-      tags: tags,
-    });
-    if (generateOauthUrlResponse.status === 200) {
-      const oauthUrl = generateOauthUrlResponse.data.oauth_url;
-      window.open(oauthUrl, '_blank');
-    } else {
-      toast.error('Error generating oauth url');
-      console.error(
-        'Error generating oauth url: ',
-        generateOauthUrlResponse.error
+  const handleAddAccountClick = async () => {
+    if (TWO_STEP_OAUTH_CONNECTORS.indexOf(integrationName) !== -1)
+      setShowAdditionalStep(true);
+    else {
+      toast.info(
+        'You will be redirected to the service to connect your account'
       );
+      await sendOauthRequest();
+    }
+  }
+
+  const sendOauthRequest = async () => {
+    try {
+      const oauthWindow = window.open('', '_blank');
+      oauthWindow.document.write('Loading...');
+
+      const chunkSizeValue =
+        service?.chunkSize || topLevelChunkSize || defaultChunkSize;
+      const overlapSizeValue =
+        service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
+      const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
+      const embeddingModelValue =
+        service?.embeddingModel || embeddingModel || null;
+      const generateSparseVectorsValue =
+        service?.generateSparseVectors || generateSparseVectors || false;
+      const prependFilenameToChunksValue =
+        service?.prependFilenameToChunks || prependFilenameToChunks || false;
+      const maxItemsPerChunkValue =
+        service?.maxItemsPerChunk || maxItemsPerChunk || false;
+      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
+
+      const oAuthURLResponse = await authenticatedFetch(
+        `${BASE_URL[environment]}/integrations/oauth_url`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: `Token ${accessToken}`,
+          },
+          body: JSON.stringify({
+            tags: tags,
+            service: service?.data_source_type,
+            chunk_size: chunkSizeValue,
+            chunk_overlap: overlapSizeValue,
+            skip_embedding_generation: skipEmbeddingGeneration,
+            embedding_model: embeddingModelValue,
+            generate_sparse_vectors: generateSparseVectorsValue,
+            prepend_filename_to_chunks: prependFilenameToChunksValue,
+            ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+            sync_files_on_connection: syncFilesOnConnection
+          }),
+        }
+      );
+
+      const oAuthURLResponseData = await oAuthURLResponse.json();
+
+      if (oAuthURLResponse.status === 200) {
+        // setFlag(service?.data_source_type, true);
+        onSuccess({
+          status: 200,
+          data: null,
+          integration: service?.data_source_type,
+          action: onSuccessEvents.INITIATE,
+          event: onSuccessEvents.INITIATE,
+        });
+
+        oauthWindow.location.href = oAuthURLResponseData.oauth_url;
+      } else {
+        oauthWindow.document.write(oAuthURLResponseData.detail);
+      }
+    } catch (err) {
+      console.log('[ThirdPartyHome.js] Error in handleServiceOAuthFlow: ', err);
     }
   };
 
@@ -474,20 +525,7 @@ const ThirdPartyHome = ({
                       integrationData?.branding?.header?.primaryLabelColor ??
                       '#FFFFFF',
                   }}
-                  onClick={() => {
-                    if (
-                      integrationName === 'ZENDESK' ||
-                      integrationName === 'SHAREPOINT' ||
-                      integrationName === 'CONFLUENCE'
-                    )
-                      setShowAdditionalStep(true);
-                    else {
-                      toast.info(
-                        'You will be redirected to the service to connect your account'
-                      );
-                      handleNewAccountClick();
-                    }
-                  }}
+                  onClick={() => handleAddAccountClick()}
                 >
                   Connect Account
                 </button>
@@ -497,10 +535,7 @@ const ThirdPartyHome = ({
                 className="cc-py-2 cc-px-4 cc-text-xs cc-rounded-md cc-w-1/3 sm:cc-w-full md:cc-w-1/3 cc-truncate cc-text-left cc-bg-white cc-border cc-border-gray-300 cc-cursor-pointer"
                 onChange={async (e) => {
                   if (e.target.value === 'add-account') {
-                    toast.info(
-                      'You will be redirected to the service to connect your account'
-                    );
-                    handleNewAccountClick();
+                    handleAddAccountClick();
                     e.target.value = ''; // Reset the select value
                   } else if (e.target.value === '') {
                     setViewSelectedAccountData(null);
@@ -561,21 +596,19 @@ const ThirdPartyHome = ({
           <div className="cc-flex-col cc-flex md:cc-translate-y-4 cc-text-sm cc-h-full cc-mb-4">
             <div className="cc-flex cc-border-b cc-mb-0">
               <button
-                className={`cc-flex cc-py-2 cc-px-2 cc-text-center cc-cursor-pointer ${
-                  activeTab === 'files'
-                    ? 'cc-border-b-4 cc-font-bold'
-                    : 'cc-font-normal'
-                } cc-items-left cc-space-x-2 cc-justify-center cc-w-fit-content`}
+                className={`cc-flex cc-py-2 cc-px-2 cc-text-center cc-cursor-pointer ${activeTab === 'files'
+                  ? 'cc-border-b-4 cc-font-bold'
+                  : 'cc-font-normal'
+                  } cc-items-left cc-space-x-2 cc-justify-center cc-w-fit-content`}
                 onClick={() => setActiveTab('files')}
               >
                 Files
               </button>
               <button
-                className={`cc-flex cc-py-2 cc-px-2 cc-text-center cc-cursor-pointer ${
-                  activeTab === 'config'
-                    ? 'cc-border-b-2 cc-font-bold'
-                    : 'cc-font-normal'
-                } cc-items-center cc-space-x-2 cc-justify-center cc-w-fit-content`}
+                className={`cc-flex cc-py-2 cc-px-2 cc-text-center cc-cursor-pointer ${activeTab === 'config'
+                  ? 'cc-border-b-2 cc-font-bold'
+                  : 'cc-font-normal'
+                  } cc-items-center cc-space-x-2 cc-justify-center cc-w-fit-content`}
                 onClick={() => setActiveTab('config')}
               >
                 Configuration
@@ -615,9 +648,8 @@ const ThirdPartyHome = ({
                     </button>
                     <button
                       className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md
-                      ${
-                        showFileSelector ? 'cc-bg-gray-300 cc-text-black' : ''
-                      }`}
+                      ${showFileSelector ? 'cc-bg-gray-300 cc-text-black' : ''
+                        }`}
                       onClick={() => {
                         toggleFileSelector();
                       }}
@@ -743,9 +775,8 @@ const ThirdPartyHome = ({
                 </h1>
                 <VscSync
                   onClick={resyncDataSource}
-                  className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${
-                    isResyncingDataSource ? 'animate-spin' : ''
-                  }`}
+                  className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${isResyncingDataSource ? 'animate-spin' : ''
+                    }`}
                 />
                 {integrationName === 'NOTION' && (
                   <FcSettings

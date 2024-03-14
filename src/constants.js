@@ -12,3 +12,23 @@ export const onSuccessEvents = {
   REMOVE: 'REMOVE',
   UPDATE: 'UPDATE',
 };
+
+export const SYNC_FILES_ON_CONNECT = true
+
+export const TWO_STEP_OAUTH_CONNECTORS = ['ZENDESK', 'SHAREPOINT', 'CONFLUENCE']
+
+export const THIRD_PARTY_CONNECTORS = [
+  'BOX',
+  'CONFLUENCE',
+  'DROPBOX',
+  'GOOGLE_DRIVE',
+  'INTERCOM',
+  'NOTION',
+  'ONEDRIVE',
+  'SHAREPOINT',
+  'ZENDESK',
+  'ZOTERO',
+  'FRESHDESK',
+  'GITBOOK',
+  'GMAIL'
+]

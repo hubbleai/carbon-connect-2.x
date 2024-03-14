@@ -8,7 +8,7 @@ import ThirdPartyList from '../components/ThirdPartyList';
 import FileUpload from '../components/FileUpload';
 import { ToastContainer } from 'react-toastify';
 
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { BASE_URL, onSuccessEvents, THIRD_PARTY_CONNECTORS } from '../constants';
 import { useCarbon } from '../contexts/CarbonContext';
 import WebScraper from '../components/WebScraper';
 import ZendeskScreen from './ZendeskScreen';
@@ -60,6 +60,9 @@ const IntegrationModal = ({
           (oldIntegration) => oldIntegration.id === newIntegration.id
         );
 
+        // if (newIntegration.data_source_type === 'GOOGLE_DRIVE')
+        //   console.log('Integration: ', newIntegration, oldIntegration);
+
         if (!oldIntegration) {
           const onSuccessObject = {
             status: 200,
@@ -74,25 +77,6 @@ const IntegrationModal = ({
           };
 
           response.push(onSuccessObject);
-
-          // TODO: Remove this once we have the BE code ready
-          // START
-          const requestBody = {
-            data_source_id: newIntegration.id,
-          };
-
-          authenticatedFetch(
-            `${BASE_URL[environment]}/integrations/items/sync`,
-            {
-              method: 'POST',
-              headers: {
-                Authorization: `Token ${accessToken}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestBody),
-            }
-          );
-          // END
 
           if (
             newIntegration?.data_source_type === 'NOTION' ||
@@ -199,7 +183,9 @@ const IntegrationModal = ({
       }
 
       return response;
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const fetchUserIntegrationsHelper = async () => {
@@ -248,7 +234,7 @@ const IntegrationModal = ({
   const fetchUserIntegrations = async () => {
     try {
       await fetchUserIntegrationsHelper();
-    } catch (error) {}
+    } catch (error) { }
   };
 
   useEffect(() => {
@@ -286,11 +272,10 @@ const IntegrationModal = ({
           style={{ zIndex: zIndex - 1 }}
         />
         <Dialog.Content
-          className={`cc-flex cc-flex-col data-[state=open]:cc-animate-contentShow cc-fixed cc-top-[50%] cc-left-[50%] cc-translate-x-[-50%] cc-translate-y-[-50%] cc-rounded-[6px] cc-bg-white focus:cc-outline-none ${
-            activeStep === 0
-              ? 'cc-w-full cc-h-full sm:cc-w-[350px] sm:cc-h-[600px]'
-              : 'cc-w-full cc-h-full sm:cc-w-1/2 sm:cc-h-2/3 sm:cc-max-w-2xl'
-          }`}
+          className={`cc-flex cc-flex-col data-[state=open]:cc-animate-contentShow cc-fixed cc-top-[50%] cc-left-[50%] cc-translate-x-[-50%] cc-translate-y-[-50%] cc-rounded-[6px] cc-bg-white focus:cc-outline-none ${activeStep === 0
+            ? 'cc-w-full cc-h-full sm:cc-w-[350px] sm:cc-h-[600px]'
+            : 'cc-w-full cc-h-full sm:cc-w-1/2 sm:cc-h-2/3 sm:cc-max-w-2xl'
+            }`}
           style={{ zIndex: zIndex }}
         >
           {activeStep === 0 && (
@@ -306,20 +291,7 @@ const IntegrationModal = ({
             />
           )}
 
-          {[
-            'BOX',
-            'CONFLUENCE',
-            'DROPBOX',
-            'GOOGLE_DRIVE',
-            'INTERCOM',
-            // 'LOCAL_FILES',
-            'NOTION',
-            'ONEDRIVE',
-            'SHAREPOINT',
-            // 'WEB_SCRAPER',
-            'ZENDESK',
-            'ZOTERO',
-          ].includes(activeStep) && (
+          {THIRD_PARTY_CONNECTORS.includes(activeStep) && (
             <ThirdPartyHome
               activeIntegrations={activeIntegrations}
               integrationName={activeStep}
