@@ -33,6 +33,7 @@ import FreshdeskLogo from '../logos/freshdesk.svg';
 import GmailLogo from '../logos/gmail.svg';
 import GitbookLogo from '../logos/gitbook.svg'
 import SalesforceLogo from '../logos/salesforce.svg'
+import OutlookLogo from '../logos/outlook.svg';
 
 export const INTEGRATIONS_LIST = [
     {
@@ -296,6 +297,80 @@ export const INTEGRATIONS_LIST = [
         requiresOAuth: true,
         multiStep: false,
         supportsMultipleAccounts: false,
+        branding: {
+            header: {
+                primaryBackgroundColor: '#d6ebff',
+                primaryButtonColor: '#0363b8',
+                primaryLabelColor: '#FFFFFF',
+                primaryTextColor: '#000000',
+                secondaryTextColor: '#000000',
+
+                // secondaryBackgroundColor: '#0061D5',
+                // secondaryButtonColor: '#143B83',
+            },
+        },
+    },
+    {
+        id: 'OUTLOOK',
+        subpath: 'outlook',
+        name: 'Outlook',
+        description: 'Lets your users connect their Outlook accounts to Carbon.',
+        announcementName: 'to connect Outlook',
+        icon: <img src={OutlookLogo} className="cc-w-7 cc-h-7" />,
+        logo: OutlookLogo,
+        active: true,
+        data_source_type: 'OUTLOOK',
+        requiresOAuth: true,
+        branding: {
+            header: {
+                primaryBackgroundColor: '#d6ebff',
+                primaryButtonColor: '#0363b8',
+                primaryLabelColor: '#FFFFFF',
+                primaryTextColor: '#000000',
+                secondaryTextColor: '#000000',
+
+                // secondaryBackgroundColor: '#0061D5',
+                // secondaryButtonColor: '#143B83',
+            },
+        },
+    },
+    {
+        id: 'S3',
+        subpath: 's3',
+        name: 'S3',
+        description: 'Lets your users connect their data on S3 to Carbon.',
+        announcementName: 'to connect S3',
+        icon: <img src={S3Logo} className="cc-w-7 cc-h-7" />,
+        logo: S3Logo,
+        active: true,
+        data_source_type: 'S3',
+        requiresOAuth: false,
+        multiStep: true,
+        branding: {
+            header: {
+                primaryBackgroundColor: '#d6ebff',
+                primaryButtonColor: '#0363b8',
+                primaryLabelColor: '#FFFFFF',
+                primaryTextColor: '#000000',
+                secondaryTextColor: '#000000',
+
+                // secondaryBackgroundColor: '#0061D5',
+                // secondaryButtonColor: '#143B83',
+            },
+        },
+    },
+    {
+        id: 'SALESFORCE',
+        subpath: 'salesforce',
+        name: 'Salesforce',
+        description: 'Lets your users connect their Salesforce accounts to Carbon.',
+        announcementName: 'to connect Salesforce',
+        icon: <img src={SalesforceLogo} className="cc-w-7 cc-h-7" />,
+        logo: SalesforceLogo,
+        active: true,
+        data_source_type: 'SALESFORCE',
+        requiresOAuth: true,
+        multiStep: true,
         branding: {
             header: {
                 primaryBackgroundColor: '#d6ebff',

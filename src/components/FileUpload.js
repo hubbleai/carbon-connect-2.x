@@ -362,7 +362,7 @@ function FileUpload({ setActiveStep }) {
 
               failedUploads.push({
                 name: file.name,
-                message: errorData.message || 'Failed to upload file.',
+                message: errorData.detail || 'Failed to upload file.',
               });
             }
           } catch (error) {

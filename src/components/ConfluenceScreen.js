@@ -8,7 +8,7 @@ import { SiConfluence } from 'react-icons/si';
 import { toast } from 'react-toastify';
 
 import '../index.css';
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
@@ -46,6 +46,10 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
     onError,
     primaryBackgroundColor,
     primaryTextColor,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -54,12 +58,25 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         toast.error('Please enter a subdomain.');
         return;
       }
+      const oauthWindow = window.open('', '_blank');
+      oauthWindow.document.write('Loading...');
+
       setIsLoading(true);
       const chunkSize =
         service?.chunkSize || topLevelChunkSize || defaultChunkSize;
       const overlapSize =
         service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
       const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
+      const embeddingModelValue =
+        service?.embeddingModel || embeddingModel || null;
+      const generateSparseVectorsValue =
+        service?.generateSparseVectors || generateSparseVectors || false;
+      const prependFilenameToChunksValue =
+        service?.prependFilenameToChunks || prependFilenameToChunks || false;
+      const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
+      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
+
+
       const subdomain = confluenceSubdomain
         .replace('https://www.', '')
         .replace('http://www.', '')
@@ -76,6 +93,12 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         chunk_overlap: overlapSize,
         skip_embedding_generation: skipEmbeddingGeneration,
         confluence_subdomain: subdomain,
+        embedding_model: embeddingModelValue,
+        generate_sparse_vectors: generateSparseVectorsValue,
+        prepend_filename_to_chunks: prependFilenameToChunksValue,
+        ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+        sync_files_on_connection: syncFilesOnConnection,
+        connecting_new_account: true
       };
 
       const response = await authenticatedFetch(
@@ -90,6 +113,8 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         }
       );
 
+      const oAuthURLResponseData = await response.json();
+
       if (response.status === 200) {
         onSuccess({
           status: 200,
@@ -98,10 +123,11 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
           event: onSuccessEvents.INITIATE,
           integration: 'CONFULENCE',
         });
-        setIsLoading(false);
-        const oAuthURLResponseData = await response.json();
-        window.open(oAuthURLResponseData.oauth_url, '_blank');
+        oauthWindow.location.href = oAuthURLResponseData.oauth_url;
+      } else {
+        oauthWindow.document.body.innerHTML = oAuthURLResponseData.detail;
       }
+      setIsLoading(false)
     } catch (error) {
       toast.error('Error getting oAuth URL. Please try again.');
       setIsLoading(false);

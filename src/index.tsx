@@ -28,9 +28,12 @@ export enum IntegrationName {
   SHAREPOINT = "SHAREPOINT",
   ZOTERO = "ZOTERO",
   CONFLUENCE = "CONFLUENCE",
+  S3 = "S3",
+  GMAIL = "GMAIL",
   FRESHDESK = "FRESHDESK",
   GITBOOK = "GITBOOK",
-  GMAIL = "GMAIL",
+  OUTLOOK = "OUTLOOK",
+  SALESFORCE = "SALESFORCE",
 }
 
 export enum SyncStatus {

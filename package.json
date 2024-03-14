@@ -49,7 +49,7 @@
   },
   "peerDependencies": {
     "@radix-ui/react-dialog": "^1.0.0",
-    "carbon-connect-js": "^0.0.11",
+    "carbon-connect-js": "^0.0.23",
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0",
     "react-drag-drop-files": "^2.0.0",

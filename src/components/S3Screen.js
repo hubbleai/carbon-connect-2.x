@@ -3,17 +3,18 @@ import React, { useEffect, useState } from 'react';
 import { darkenColor } from '../utils/helpers';
 
 import * as Dialog from '@radix-ui/react-dialog';
-import { HiArrowLeft, HiUpload, HiInformationCircle } from 'react-icons/hi';
-import { SiZendesk } from 'react-icons/si';
+import { HiUpload, HiInformationCircle } from 'react-icons/hi';
+
 import { toast } from 'react-toastify';
 
 import '../index.css';
-import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT } from '../constants';
+import { BASE_URL, onSuccessEvents } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
-function ZendeskScreen({ buttonColor, labelColor }) {
-  const [zendeskSubdomain, setZendeskSubdomain] = useState('');
+function S3Screen({ buttonColor, labelColor }) {
+  const [accessKey, setAccessKey] = useState('');
+  const [accessKeySecret, setAccessKeySecret] = useState('');
   const [submitButtonHoveredState, setSubmitButtonHoveredState] =
     useState(false);
 
@@ -22,84 +23,50 @@ function ZendeskScreen({ buttonColor, labelColor }) {
 
   useEffect(() => {
     setService(
-      processedIntegrations.find((integration) => integration.id === 'ZENDESK')
+      processedIntegrations.find((integration) => integration.id === 'S3')
     );
   }, [processedIntegrations]);
 
   const {
     accessToken,
     processedIntegrations,
-    topLevelChunkSize,
-    topLevelOverlapSize,
-    defaultChunkSize,
-    defaultOverlapSize,
     authenticatedFetch,
     secondaryBackgroundColor,
     secondaryTextColor,
-    setActiveStep,
-    entryPoint,
     environment,
-    tags,
     onSuccess,
     onError,
-    primaryBackgroundColor,
-    primaryTextColor,
-    embeddingModel,
-    generateSparseVectors,
-    prependFilenameToChunks,
-    maxItemsPerChunk
   } = useCarbon();
 
   const fetchOauthURL = async () => {
     try {
-      if (!zendeskSubdomain) {
-        toast.error('Please enter a subdomain.');
+      if (!accessKey) {
+        toast.error('Please provide the access key.');
         return;
       }
-      const oauthWindow = window.open('', '_blank');
-      oauthWindow.document.write('Loading...');
+      if (!accessKeySecret) {
+        toast.error('Please provide the access key secret.');
+        return;
+      }
 
       setIsLoading(true);
-      const chunkSize =
-        service?.chunkSize || topLevelChunkSize || defaultChunkSize;
-      const overlapSize =
-        service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
-      const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
-      const embeddingModelValue =
-        service?.embeddingModel || embeddingModel || null;
-      const generateSparseVectorsValue =
-        service?.generateSparseVectors || generateSparseVectors || false;
-      const prependFilenameToChunksValue =
-        service?.prependFilenameToChunks || prependFilenameToChunks || false;
-      const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
-      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
 
-      const subdomain = zendeskSubdomain
-        .replace('https://www.', '')
-        .replace('http://www.', '')
-        .replace('https://', '')
-        .replace('http://', '')
-        .replace('.zendesk.com', '')
-        .replace(/\/$/, '')
-        .trim();
+      onSuccess({
+        status: 200,
+        data: null,
+        action: onSuccessEvents.INITIATE,
+        event: onSuccessEvents.INITIATE,
+        integration: 'S3',
+      });
+      setIsLoading(true);
 
       const requestObject = {
-        tags: tags,
-        service: service?.data_source_type,
-        chunk_size: chunkSize,
-        chunk_overlap: overlapSize,
-        skip_embedding_generation: skipEmbeddingGeneration,
-        zendesk_subdomain: subdomain,
-        embedding_model: embeddingModelValue,
-        generate_sparse_vectors: generateSparseVectorsValue,
-        prepend_filename_to_chunks: prependFilenameToChunksValue,
-        ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
-        sync_files_on_connection: syncFilesOnConnection,
-        connecting_new_account: true
+        access_key: accessKey,
+        access_key_secret: accessKeySecret,
       };
 
       const response = await authenticatedFetch(
-        `${BASE_URL[environment]}/integrations/oauth_url`,
+        `${BASE_URL[environment]}/integrations/s3`,
         {
           method: 'POST',
           headers: {
@@ -110,19 +77,21 @@ function ZendeskScreen({ buttonColor, labelColor }) {
         }
       );
 
-      const oAuthURLResponseData = await response.json();
+      const responseData = await response.json();
 
       if (response.status === 200) {
         onSuccess({
           status: 200,
           data: null,
-          action: onSuccessEvents.INITIATE,
-          event: onSuccessEvents.INITIATE,
-          integration: 'ZENDESK',
+          action: onSuccessEvents.ADD,
+          event: onSuccessEvents.ADD,
+          integration: 'S3',
         });
-        oauthWindow.location.href = oAuthURLResponseData.oauth_url;
+        toast.info('S3 sync initiated.');
+        setAccessKey("")
+        setAccessKeySecret("")
       } else {
-        oauthWindow.document.body.innerHTML = oAuthURLResponseData.detail;
+        toast.error(responseData.detail)
       }
       setIsLoading(false)
     } catch (error) {
@@ -133,7 +102,7 @@ function ZendeskScreen({ buttonColor, labelColor }) {
         data: [{ message: 'Error getting oAuth URL. Please try again.' }],
         action: onSuccessEvents.ERROR,
         event: onSuccessEvents.ERROR,
-        integration: 'ZENDESK',
+        integration: 'S3',
       });
     }
   };
@@ -143,9 +112,13 @@ function ZendeskScreen({ buttonColor, labelColor }) {
       <div className="py-4 cc-flex cc-grow cc-w-full">
         <div className="cc-flex cc-flex-col cc-justify-start cc-h-full cc-items-start cc-w-full cc-space-y-4">
           <span className="cc-text-sm">
-            Please enter the Zendesk{' '}
+            Please enter your S3{' '}
             <span className="cc-bg-gray-200 cc-px-1 cc-py-0.5 cc-rounded cc-font-mono cc-text-red-400">
-              your-subdomain
+              access key
+            </span>{' '}
+            and{' '}
+            <span className="cc-bg-gray-200 cc-px-1 cc-py-0.5 cc-rounded cc-font-mono cc-text-red-400">
+              access key secret
             </span>{' '}
             of the account you wish to connect.
           </span>
@@ -155,9 +128,19 @@ function ZendeskScreen({ buttonColor, labelColor }) {
               type="text"
               className="cc-p-2 cc-flex-grow cc-text-gray-700 cc-text-sm cc-border-4 cc-border-gray-400"
               style={{ borderRadius: '0.375rem' }}
-              placeholder="your-subdomain.zendesk.com"
-              value={zendeskSubdomain}
-              onChange={(e) => setZendeskSubdomain(e.target.value)}
+              placeholder="Access key"
+              value={accessKey}
+              onChange={(e) => setAccessKey(e.target.value)}
+            />
+          </div>
+          <div className="cc-flex cc-space-x-2 cc-items-center cc-w-full cc-h-10">
+            <input
+              type="password"
+              className="cc-p-2 cc-flex-grow cc-text-gray-700 cc-text-sm cc-border-4 cc-border-gray-400"
+              style={{ borderRadius: '0.375rem' }}
+              placeholder="Access key secret"
+              value={accessKeySecret}
+              onChange={(e) => setAccessKeySecret(e.target.value)}
             />
           </div>
         </div>
@@ -172,8 +155,8 @@ function ZendeskScreen({ buttonColor, labelColor }) {
         >
           <HiInformationCircle className="cc-w-8 cc-h-8" />
           <span className="text-xs">
-            By connecting to Zendesk, you are providing us with access to your
-            Zendesk profile and Help Center articles.
+            By connecting to S3, you are providing us with access to your data
+            hosted on S3. We do not modify any data.
           </span>
         </p>
 
@@ -201,4 +184,4 @@ function ZendeskScreen({ buttonColor, labelColor }) {
   );
 }
 
-export default ZendeskScreen;
+export default S3Screen;

@@ -48,6 +48,10 @@ function SharepointScreen({ buttonColor, labelColor }) {
     onError,
     primaryBackgroundColor,
     primaryTextColor,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -62,7 +66,10 @@ function SharepointScreen({ buttonColor, labelColor }) {
         return;
       }
 
+      const oauthWindow = window.open('', '_blank');
+      oauthWindow.document.write('Loading...');
       setIsLoading(true);
+
       const chunkSize =
         service?.chunkSize || topLevelChunkSize || defaultChunkSize;
       const overlapSize =
@@ -70,6 +77,13 @@ function SharepointScreen({ buttonColor, labelColor }) {
       const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
       const tenant = microsoftTenant;
       const sitename = sharepointSiteName;
+      const embeddingModelValue =
+        service?.embeddingModel || embeddingModel || null;
+      const generateSparseVectorsValue =
+        service?.generateSparseVectors || generateSparseVectors || false;
+      const prependFilenameToChunksValue =
+        service?.prependFilenameToChunks || prependFilenameToChunks || false;
+      const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
 
       const requestObject = {
         tags: tags,
@@ -79,6 +93,11 @@ function SharepointScreen({ buttonColor, labelColor }) {
         skip_embedding_generation: skipEmbeddingGeneration,
         microsoft_tenant: tenant,
         sharepoint_site_name: sitename,
+        embedding_model: embeddingModelValue,
+        generate_sparse_vectors: generateSparseVectorsValue,
+        prepend_filename_to_chunks: prependFilenameToChunksValue,
+        ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+        connecting_new_account: true
       };
 
       const response = await authenticatedFetch(
@@ -93,6 +112,8 @@ function SharepointScreen({ buttonColor, labelColor }) {
         }
       );
 
+      const oAuthURLResponseData = await response.json();
+
       if (response.status === 200) {
         onSuccess({
           status: 200,
@@ -101,10 +122,11 @@ function SharepointScreen({ buttonColor, labelColor }) {
           event: onSuccessEvents.INITIATE,
           integration: 'SHAREPOINT',
         });
-        setIsLoading(false);
-        const oAuthURLResponseData = await response.json();
-        window.open(oAuthURLResponseData.oauth_url, '_blank');
+        oauthWindow.location.href = oAuthURLResponseData.oauth_url;
+      } else {
+        oauthWindow.document.body.innerHTML = oAuthURLResponseData.detail;
       }
+      setIsLoading(false);
     } catch (error) {
       toast.error('Error getting oAuth URL. Please try again.');
       setIsLoading(false);

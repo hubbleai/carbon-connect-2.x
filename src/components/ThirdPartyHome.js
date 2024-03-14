@@ -20,7 +20,7 @@ import {
   revokeAccessToDataSource,
   resyncFile,
 } from 'carbon-connect-js';
-import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT, TWO_STEP_OAUTH_CONNECTORS } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT, SYNC_URL_BASED_CONNECTORS, TWO_STEP_CONNECTORS } from '../constants';
 import { VscDebugDisconnect, VscLoading, VscSync } from 'react-icons/vsc';
 import { IoCloudUploadOutline } from 'react-icons/io5';
 import { CiCircleList } from 'react-icons/ci';
@@ -32,6 +32,7 @@ import ZendeskScreen from './ZendeskScreen';
 import ConfluenceScreen from './ConfluenceScreen';
 import SharepointScreen from './SharepointScreen';
 import { FcSettings } from 'react-icons/fc';
+import S3Screen from "./S3Screen";
 
 const ThirdPartyHome = ({
   integrationName,
@@ -107,16 +108,8 @@ const ThirdPartyHome = ({
     if (connected.length === 1 && viewSelectedAccountData === null) {
       setViewSelectedAccountData(connected[0]);
     }
-  }, [activeIntegrations]);
-
-  // TODO: This useEffect will be removed when we enable multiple accounts for all integrations
-  useEffect(() => {
-    if (integrationName === 'NOTION') setCanConnectMore(true);
-    // else if (connected.length !== 0) setCanConnectMore(false);
-    else setCanConnectMore(true);
-
-    setIsLoading(false);
-  }, [connected, integrationName]);
+    setIsLoading(false)
+  }, [activeIntegrations.map(i => i.id).join(",")]);
 
   useEffect(() => {
     if (viewSelectedAccountData) {
@@ -336,9 +329,10 @@ const ThirdPartyHome = ({
   };
 
   const handleAddAccountClick = async () => {
-    if (TWO_STEP_OAUTH_CONNECTORS.indexOf(integrationName) !== -1)
+    if (TWO_STEP_CONNECTORS.indexOf(integrationName) !== -1) {
       setShowAdditionalStep(true);
-    else {
+      setViewSelectedAccountData(null)
+    } else {
       toast.info(
         'You will be redirected to the service to connect your account'
       );
@@ -346,7 +340,7 @@ const ThirdPartyHome = ({
     }
   }
 
-  const sendOauthRequest = async () => {
+  const sendOauthRequest = async (mode = "CONNECT", dataSourceId = null) => {
     try {
       const oauthWindow = window.open('', '_blank');
       oauthWindow.document.write('Loading...');
@@ -384,7 +378,9 @@ const ThirdPartyHome = ({
             generate_sparse_vectors: generateSparseVectorsValue,
             prepend_filename_to_chunks: prependFilenameToChunksValue,
             ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
-            sync_files_on_connection: syncFilesOnConnection
+            sync_files_on_connection: syncFilesOnConnection,
+            connecting_new_account: mode == "CONNECT" ? true : false,
+            ...(dataSourceId && { data_source_id: dataSourceId })
           }),
         }
       );
@@ -423,13 +419,6 @@ const ThirdPartyHome = ({
     setSearchQuery(event.target.value);
   };
 
-  const toggleFileSelector = () => {
-    setShowFileSelector((prevShowFileSelector) => {
-      return !prevShowFileSelector;
-    });
-    setSearchQuery('');
-  };
-
   const resyncDataSource = async () => {
     setIsResyncingDataSource(true);
     const requestBody = {
@@ -455,6 +444,14 @@ const ThirdPartyHome = ({
     }
     setIsResyncingDataSource(false);
   };
+
+  const handleUploadFilesClick = () => {
+    if (SYNC_URL_BASED_CONNECTORS.includes(integrationName) && viewSelectedAccountData) {
+      sendOauthRequest("UPLOAD", viewSelectedAccountData.id)
+    } else {
+      toast.error("Unable to start a file sync")
+    }
+  }
 
   return (
     <div className="cc-h-full cc-w-full cc-flex cc-flex-col">
@@ -575,12 +572,11 @@ const ThirdPartyHome = ({
                     </option>
                   );
                 })}
-                {canConnectMore && (
-                  <>
-                    <hr className="cc-border-gray-300 cc-my-1" />
-                    <option value="add-account">Add Account</option>
-                  </>
-                )}
+
+                <>
+                  <hr className="cc-border-gray-300 cc-my-1" />
+                  <option value="add-account">Add Account</option>
+                </>
               </select>
             )}
           </div>
@@ -637,35 +633,22 @@ const ThirdPartyHome = ({
                   {/* Switcher */}
                   <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
                     <button
-                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md
-                      ${showFileSelector ? '' : 'cc-bg-gray-300 cc-text-black'}
-                      `}
-                      onClick={() => {
-                        toggleFileSelector();
-                      }}
+                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-bg-gray-300 cc-text-black`}
                     >
                       <CiCircleList className="cc-w-4 cc-h-4" />
                     </button>
-                    <button
-                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md
-                      ${showFileSelector ? 'cc-bg-gray-300 cc-text-black' : ''
-                        }`}
+                    {SYNC_URL_BASED_CONNECTORS.includes(integrationName) ? <button
+                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md`}
                       onClick={() => {
-                        toggleFileSelector();
+                        handleUploadFilesClick()
                       }}
                     >
                       <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
-                    </button>
+                    </button> : null}
                   </div>
                 </div>
 
-                {showFileSelector ? (
-                  <FileSelector
-                    account={viewSelectedAccountData}
-                    searchQuery={searchQuery}
-                    files={files}
-                  />
-                ) : viewSelectedAccountData.synced_files.length === 0 ? (
+                {viewSelectedAccountData.synced_files.length === 0 ? (
                   <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-grow">
                     <p className="cc-text-gray-500 cc-text-sm">
                       No files synced
@@ -778,12 +761,6 @@ const ThirdPartyHome = ({
                   className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${isResyncingDataSource ? 'animate-spin' : ''
                     }`}
                 />
-                {integrationName === 'NOTION' && (
-                  <FcSettings
-                    onClick={handleNewAccountClick}
-                    className="cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6"
-                  />
-                )}
 
                 <button
                   className="cc-text-red-600 cc-bg-red-200 cc-px-4 cc-py-2 cc-font-semibold cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
@@ -820,7 +797,7 @@ const ThirdPartyHome = ({
           </div>
         ) : (
           <div className="cc-grow cc-w-full cc-h-full cc-items-center cc-justify-center cc-flex">
-            {connected.length === 0 ? (
+            {
               showAdditionalStep ? (
                 (integrationName === 'ZENDESK' && (
                   <ZendeskScreen
@@ -851,21 +828,28 @@ const ThirdPartyHome = ({
                       integrationData?.branding?.header?.primaryLabelColor
                     }
                   />
+                )) ||
+                (integrationName == 'S3' && (
+                  <S3Screen
+                    buttonColor={
+                      integrationData?.branding?.header?.primaryButtonColor
+                    }
+                    labelColor={
+                      integrationData?.branding?.header?.primaryLabelColor
+                    }
+                  />
                 ))
               ) : (
                 <div className="cc-flex cc-flex-col cc-items-center cc-justify-center">
                   <p className="cc-text-gray-500 cc-text-sm">
-                    No account connected
+                    {connected.length
+                      ? "Please select an account to view or sync files"
+                      : "No account connected, please connect an account"
+                    }
                   </p>
                 </div>
               )
-            ) : (
-              <div className="cc-flex cc-flex-col cc-items-center cc-justify-center">
-                <p className="cc-text-gray-500 cc-text-sm">
-                  Select an account to view files
-                </p>
-              </div>
-            )}
+            }
           </div>
         )}
       </div>

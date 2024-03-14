@@ -15,7 +15,9 @@ export const onSuccessEvents = {
 
 export const SYNC_FILES_ON_CONNECT = true
 
-export const TWO_STEP_OAUTH_CONNECTORS = ['ZENDESK', 'SHAREPOINT', 'CONFLUENCE']
+export const TWO_STEP_CONNECTORS = [
+  'ZENDESK', 'SHAREPOINT', 'CONFLUENCE', 'SALESFORCE', 'S3'
+]
 
 export const THIRD_PARTY_CONNECTORS = [
   'BOX',
@@ -30,5 +32,23 @@ export const THIRD_PARTY_CONNECTORS = [
   'ZOTERO',
   'FRESHDESK',
   'GITBOOK',
-  'GMAIL'
+  'GMAIL',
+  'OUTLOOK',
+  'SALESFORCE',
+  'S3'
+]
+
+// used to check if we need to generate sync/OAuth URL for syncing files
+export const SYNC_URL_BASED_CONNECTORS = [
+  'BOX',
+  'CONFLUENCE',
+  'DROPBOX',
+  'GOOGLE_DRIVE',
+  'INTERCOM',
+  'NOTION',
+  'ONEDRIVE',
+  'SHAREPOINT',
+  'ZENDESK',
+  'ZOTERO',
+  'SALESFORCE'
 ]
