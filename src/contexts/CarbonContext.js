@@ -42,7 +42,8 @@ export const CarbonProvider = ({
   embeddingModel,
   generateSparseVectors,
   prependFilenameToChunks,
-  maxItemsPerChunk
+  maxItemsPerChunk,
+  setPageAsBoundary
 }) => {
   const [showModal, setShowModal] = useState(open);
   const [loading, setLoading] = useState(false);
@@ -146,7 +147,8 @@ export const CarbonProvider = ({
         service?.prependFilenameToChunks || prependFilenameToChunks || false;
       const maxItemsPerChunkValue =
         service?.maxItemsPerChunk || maxItemsPerChunk || false;
-      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
+      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
+      const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
 
       const oAuthURLResponse = await authenticatedFetch(
         `${BASE_URL[environment]}/integrations/oauth_url`,

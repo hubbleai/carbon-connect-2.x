@@ -67,13 +67,13 @@ export interface BaseIntegration {
   prependFilenameToChunks?: boolean;
   maxItemsPerChunk?: number;
   syncFilesOnConnection?: boolean;
+  setPageAsBoundary?: boolean;
 }
 export interface LocalFilesIntegration extends BaseIntegration {
   maxFileSize: number;
   allowMultipleFiles: boolean;
   maxFilesCount?: number;
   allowedFileTypes?: FileType[];
-  setPageAsBoundary?: boolean;
   filePickerMode?: FilePickerMode;
   useOcr?: boolean;
 }
@@ -156,11 +156,22 @@ export interface OnErrorData {
 
 export type TagValue = string | number | string[] | number[];
 
-type EmbeddingModel =
-  | "OPENAI"
-  | "AZURE_OPENAI"
-  | "COHERE_MULTILINGUAL_V3"
-  | "VERTEX_MULTIMODAL";
+export enum EmbeddingGenerators {
+  OPENAI = "OPENAI",
+  AZURE_OPENAI = "AZURE_OPENAI",
+  AZURE_ADA_LARGE_256 = "AZURE_ADA_LARGE_256",
+  AZURE_ADA_LARGE_1024 = "AZURE_ADA_LARGE_1024",
+  AZURE_ADA_LARGE_3072 = "AZURE_ADA_LARGE_3072",
+  AZURE_ADA_SMALL_512 = "AZURE_ADA_SMALL_512",
+  AZURE_ADA_SMALL_1536 = "AZURE_ADA_SMALL_1536",
+  COHERE_MULTILINGUAL_V3 = "COHERE_MULTILINGUAL_V3",
+  VERTEX_MULTIMODAL = "VERTEX_MULTIMODAL",
+  OPENAI_ADA_LARGE_256 = "OPENAI_ADA_LARGE_256",
+  OPENAI_ADA_LARGE_1024 = "OPENAI_ADA_LARGE_1024",
+  OPENAI_ADA_LARGE_3072 = "OPENAI_ADA_LARGE_3072",
+  OPENAI_ADA_SMALL_512 = "OPENAI_ADA_SMALL_512",
+  OPENAI_ADA_SMALL_1536 = "OPENAI_ADA_SMALL_1536",
+}
 
 export interface CarbonConnectProps {
   orgName: string;
@@ -190,10 +201,11 @@ export interface CarbonConnectProps {
   backButtonText?: string;
   zIndex?: number;
   enableToasts?: boolean;
-  embeddingModel?: EmbeddingModel;
+  embeddingModel?: EmbeddingGenerators;
   generateSparseVectors?: boolean;
   prependFilenameToChunks?: boolean;
   maxItemsPerChunk?: number;
+  setPageAsBoundary?: boolean;
 }
 
 const CarbonConnect: React.FC<CarbonConnectProps> = ({
@@ -246,10 +258,11 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
   backButtonText = "Go Back",
   zIndex = 1000,
   enableToasts = true,
-  embeddingModel = "OPENAI",
+  embeddingModel = EmbeddingGenerators.OPENAI,
   generateSparseVectors = false,
   prependFilenameToChunks = false,
   maxItemsPerChunk = null,
+  setPageAsBoundary = false,
 }) => {
   const [activeStep, setActiveStep] = useState<string | number>(
     entryPoint === "LOCAL_FILES" || entryPoint === "WEB_SCRAPER"
@@ -291,6 +304,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       generateSparseVectors={generateSparseVectors}
       prependFilenameToChunks={prependFilenameToChunks}
       maxItemsPerChunk={maxItemsPerChunk}
+      setPageAsBoundary={setPageAsBoundary}
     >
       <IntegrationModal
         orgName={orgName}

@@ -51,7 +51,8 @@ function SharepointScreen({ buttonColor, labelColor }) {
     embeddingModel,
     generateSparseVectors,
     prependFilenameToChunks,
-    maxItemsPerChunk
+    maxItemsPerChunk,
+    setPageAsBoundary
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -84,6 +85,7 @@ function SharepointScreen({ buttonColor, labelColor }) {
       const prependFilenameToChunksValue =
         service?.prependFilenameToChunks || prependFilenameToChunks || false;
       const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
+      const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
 
       const requestObject = {
         tags: tags,
@@ -97,7 +99,8 @@ function SharepointScreen({ buttonColor, labelColor }) {
         generate_sparse_vectors: generateSparseVectorsValue,
         prepend_filename_to_chunks: prependFilenameToChunksValue,
         ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
-        connecting_new_account: true
+        connecting_new_account: true,
+        set_page_as_boundary: setPageAsBoundaryValue
       };
 
       const response = await authenticatedFetch(

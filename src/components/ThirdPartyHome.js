@@ -83,7 +83,8 @@ const ThirdPartyHome = ({
     generateSparseVectors,
     prependFilenameToChunks,
     maxItemsPerChunk,
-    onSuccess
+    onSuccess,
+    setPageAsBoundary
   } = useCarbon();
 
   // Fetching the active service data
@@ -360,8 +361,9 @@ const ThirdPartyHome = ({
       const prependFilenameToChunksValue =
         service?.prependFilenameToChunks || prependFilenameToChunks || false;
       const maxItemsPerChunkValue =
-        service?.maxItemsPerChunk || maxItemsPerChunk || false;
+        service?.maxItemsPerChunk || maxItemsPerChunk || null;
       const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
+      const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false
 
       const oAuthURLResponse = await authenticatedFetch(
         `${BASE_URL[environment]}/integrations/oauth_url`,
@@ -382,6 +384,7 @@ const ThirdPartyHome = ({
             prepend_filename_to_chunks: prependFilenameToChunksValue,
             ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
             sync_files_on_connection: syncFilesOnConnection,
+            set_page_as_boundary: setPageAsBoundaryValue,
             connecting_new_account: mode == "CONNECT" ? true : false,
             ...(dataSourceId && { data_source_id: dataSourceId }),
             ...extraParams

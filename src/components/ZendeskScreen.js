@@ -47,7 +47,8 @@ function ZendeskScreen({ buttonColor, labelColor }) {
     embeddingModel,
     generateSparseVectors,
     prependFilenameToChunks,
-    maxItemsPerChunk
+    maxItemsPerChunk,
+    setPageAsBoundary
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -72,7 +73,8 @@ function ZendeskScreen({ buttonColor, labelColor }) {
       const prependFilenameToChunksValue =
         service?.prependFilenameToChunks || prependFilenameToChunks || false;
       const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
-      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
+      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
+      const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
 
       const subdomain = zendeskSubdomain
         .replace('https://www.', '')
@@ -95,7 +97,8 @@ function ZendeskScreen({ buttonColor, labelColor }) {
         prepend_filename_to_chunks: prependFilenameToChunksValue,
         ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
         sync_files_on_connection: syncFilesOnConnection,
-        connecting_new_account: true
+        connecting_new_account: true,
+        set_page_as_boundary: setPageAsBoundaryValue
       };
 
       const response = await authenticatedFetch(

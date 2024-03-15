@@ -38,18 +38,15 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
     authenticatedFetch,
     secondaryBackgroundColor,
     secondaryTextColor,
-    setActiveStep,
-    entryPoint,
     environment,
     tags,
     onSuccess,
     onError,
-    primaryBackgroundColor,
-    primaryTextColor,
     embeddingModel,
     generateSparseVectors,
     prependFilenameToChunks,
-    maxItemsPerChunk
+    maxItemsPerChunk,
+    setPageAsBoundary
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -75,7 +72,7 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         service?.prependFilenameToChunks || prependFilenameToChunks || false;
       const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
       const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
-
+      const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
 
       const subdomain = confluenceSubdomain
         .replace('https://www.', '')
@@ -98,7 +95,8 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         prepend_filename_to_chunks: prependFilenameToChunksValue,
         ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
         sync_files_on_connection: syncFilesOnConnection,
-        connecting_new_account: true
+        connecting_new_account: true,
+        set_page_as_boundary: setPageAsBoundaryValue
       };
 
       const response = await authenticatedFetch(
