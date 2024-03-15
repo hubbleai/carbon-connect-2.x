@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
-
 import { darkenColor } from '../utils/helpers';
-
-import * as Dialog from '@radix-ui/react-dialog';
 import { HiUpload, HiInformationCircle } from 'react-icons/hi';
-
 import { toast } from 'react-toastify';
 
 import '../index.css';
@@ -38,7 +34,7 @@ function S3Screen({ buttonColor, labelColor }) {
     onError,
   } = useCarbon();
 
-  const fetchOauthURL = async () => {
+  const connectS3 = async () => {
     try {
       if (!accessKey) {
         toast.error('Please provide the access key.');
@@ -80,6 +76,7 @@ function S3Screen({ buttonColor, labelColor }) {
       const responseData = await response.json();
 
       if (response.status === 200) {
+        toast.info('S3 sync initiated.');
         onSuccess({
           status: 200,
           data: null,
@@ -87,19 +84,25 @@ function S3Screen({ buttonColor, labelColor }) {
           event: onSuccessEvents.ADD,
           integration: 'S3',
         });
-        toast.info('S3 sync initiated.');
         setAccessKey("")
         setAccessKeySecret("")
       } else {
+        onError({
+          status: 400,
+          data: [{ message: responseData.detail }],
+          action: onSuccessEvents.ERROR,
+          event: onSuccessEvents.ERROR,
+          integration: 'S3',
+        });
         toast.error(responseData.detail)
       }
       setIsLoading(false)
     } catch (error) {
-      toast.error('Error getting oAuth URL. Please try again.');
+      toast.error('Error connecting. Please try again.');
       setIsLoading(false);
       onError({
         status: 400,
-        data: [{ message: 'Error getting oAuth URL. Please try again.' }],
+        data: [{ message: 'Error connecting S3. Please try again.' }],
         action: onSuccessEvents.ERROR,
         event: onSuccessEvents.ERROR,
         integration: 'S3',
@@ -168,7 +171,7 @@ function S3Screen({ buttonColor, labelColor }) {
               : buttonColor,
             color: labelColor,
           }}
-          onClick={fetchOauthURL}
+          onClick={connectS3}
           onMouseEnter={() => setSubmitButtonHoveredState(true)}
           onMouseLeave={() => setSubmitButtonHoveredState(false)}
         >

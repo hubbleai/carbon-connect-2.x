@@ -33,6 +33,10 @@ import ConfluenceScreen from './ConfluenceScreen';
 import SharepointScreen from './SharepointScreen';
 import { FcSettings } from 'react-icons/fc';
 import S3Screen from "./S3Screen";
+import FreshdeskScreen from "./FreshdeskScreen";
+import GitbookScreen from "./GitbookScreen";
+import SalesforceScreen from "./SalesforceScreen";
+import { getDataSourceDomain, getDataSourceEmail } from "../utils/helpers";
 
 const ThirdPartyHome = ({
   integrationName,
@@ -42,8 +46,7 @@ const ThirdPartyHome = ({
   const [service, setService] = useState(null);
   const [integrationData, setIntegrationData] = useState(null);
   const [connected, setConnected] = useState([]);
-  const [canConnectMore, setCanConnectMore] = useState(false);
-  const [viewSelectedAccountData, setViewSelectedAccountData] = useState(null);
+  const [selectedDataSource, setSelectedDataSource] = useState(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('files'); // ['files', 'config']
@@ -105,17 +108,17 @@ const ThirdPartyHome = ({
     );
     setConnected(connected);
 
-    if (connected.length === 1 && viewSelectedAccountData === null) {
-      setViewSelectedAccountData(connected[0]);
+    if (connected.length === 1 && selectedDataSource === null) {
+      setSelectedDataSource(connected[0]);
     }
     setIsLoading(false)
   }, [activeIntegrations.map(i => i.id).join(",")]);
 
   useEffect(() => {
-    if (viewSelectedAccountData) {
+    if (selectedDataSource) {
       loadMoreRows();
     }
-  }, [viewSelectedAccountData]);
+  }, [selectedDataSource]);
 
   useEffect(() => {
     if (!files.length) return;
@@ -127,7 +130,7 @@ const ThirdPartyHome = ({
   }, [sortedFiles, searchQuery]);
 
   useEffect(() => {
-    if (!showFileSelector && viewSelectedAccountData?.id) {
+    if (!showFileSelector && selectedDataSource?.id) {
       loadMoreRows();
     }
   }, [showFileSelector]);
@@ -138,7 +141,7 @@ const ThirdPartyHome = ({
       environment: environment,
       offset: offset,
       filters: {
-        organization_user_data_source_id: [viewSelectedAccountData.id],
+        organization_user_data_source_id: [selectedDataSource.id],
       },
     });
 
@@ -331,7 +334,7 @@ const ThirdPartyHome = ({
   const handleAddAccountClick = async () => {
     if (TWO_STEP_CONNECTORS.indexOf(integrationName) !== -1) {
       setShowAdditionalStep(true);
-      setViewSelectedAccountData(null)
+      setSelectedDataSource(null)
     } else {
       toast.info(
         'You will be redirected to the service to connect your account'
@@ -340,7 +343,7 @@ const ThirdPartyHome = ({
     }
   }
 
-  const sendOauthRequest = async (mode = "CONNECT", dataSourceId = null) => {
+  const sendOauthRequest = async (mode = "CONNECT", dataSourceId = null, extraParams = {}) => {
     try {
       const oauthWindow = window.open('', '_blank');
       oauthWindow.document.write('Loading...');
@@ -380,7 +383,8 @@ const ThirdPartyHome = ({
             ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
             sync_files_on_connection: syncFilesOnConnection,
             connecting_new_account: mode == "CONNECT" ? true : false,
-            ...(dataSourceId && { data_source_id: dataSourceId })
+            ...(dataSourceId && { data_source_id: dataSourceId }),
+            ...extraParams
           }),
         }
       );
@@ -399,7 +403,7 @@ const ThirdPartyHome = ({
 
         oauthWindow.location.href = oAuthURLResponseData.oauth_url;
       } else {
-        oauthWindow.document.write(oAuthURLResponseData.detail);
+        oauthWindow.document.body.innerHTML = oAuthURLResponseData.detail
       }
     } catch (err) {
       console.log('[ThirdPartyHome.js] Error in handleServiceOAuthFlow: ', err);
@@ -422,7 +426,7 @@ const ThirdPartyHome = ({
   const resyncDataSource = async () => {
     setIsResyncingDataSource(true);
     const requestBody = {
-      data_source_id: viewSelectedAccountData.id,
+      data_source_id: selectedDataSource.id,
     };
 
     const resyncDataSourceResponse = await authenticatedFetch(
@@ -446,12 +450,24 @@ const ThirdPartyHome = ({
   };
 
   const handleUploadFilesClick = () => {
-    if (SYNC_URL_BASED_CONNECTORS.includes(integrationName) && viewSelectedAccountData) {
-      sendOauthRequest("UPLOAD", viewSelectedAccountData.id)
+    if (SYNC_URL_BASED_CONNECTORS.includes(integrationName) && selectedDataSource) {
+      const dataSourceType = selectedDataSource.data_source_type
+      const extraParams = {}
+      if (dataSourceType == "SALESFORCE") {
+        extraParams.salesforce_domain = getDataSourceDomain(selectedDataSource)
+      } else if (dataSourceType == "ZENDESK") {
+        extraParams.zendesk_subdomain = getDataSourceDomain(selectedDataSource)
+      } else if (dataSourceType == "CONFLUENCE") {
+        extraParams.confluence_subdomain = getDataSourceDomain(selectedDataSource)
+      }
+      sendOauthRequest("UPLOAD", selectedDataSource.id, extraParams)
     } else {
       toast.error("Unable to start a file sync")
     }
   }
+
+  const dataSourceDomain = selectedDataSource ? getDataSourceDomain(selectedDataSource) : null
+  const dataSourceEmail = selectedDataSource ? getDataSourceEmail(selectedDataSource) : null
 
   return (
     <div className="cc-h-full cc-w-full cc-flex cc-flex-col">
@@ -535,7 +551,7 @@ const ThirdPartyHome = ({
                     handleAddAccountClick();
                     e.target.value = ''; // Reset the select value
                   } else if (e.target.value === '') {
-                    setViewSelectedAccountData(null);
+                    setSelectedDataSource(null);
                   } else {
                     const selectedAccount = connected.find(
                       (account) =>
@@ -544,7 +560,7 @@ const ThirdPartyHome = ({
                     if (selectedAccount) {
                       setOffset(0);
                       setFiles([]);
-                      setViewSelectedAccountData(selectedAccount || null);
+                      setSelectedDataSource(selectedAccount || null);
                     } else {
                       toast.error('Error fetching files');
                     }
@@ -563,7 +579,7 @@ const ThirdPartyHome = ({
                       key={account.id}
                       value={account.data_source_external_id}
                       selected={
-                        viewSelectedAccountData?.id === account.id
+                        selectedDataSource?.id === account.id
                           ? 'selected'
                           : ''
                       }
@@ -588,7 +604,7 @@ const ThirdPartyHome = ({
           <div className="cc-flex cc-flex-col cc-grow cc-items-center cc-justify-center">
             <div className="cc-spinner cc-w-10 cc-h-10 cc-border-2 cc-border-t-4 cc-border-gray-200 cc-rounded-full cc-animate-spin"></div>
           </div>
-        ) : viewSelectedAccountData ? (
+        ) : selectedDataSource ? (
           <div className="cc-flex-col cc-flex md:cc-translate-y-4 cc-text-sm cc-h-full cc-mb-4">
             <div className="cc-flex cc-border-b cc-mb-0">
               <button
@@ -648,7 +664,7 @@ const ThirdPartyHome = ({
                   </div>
                 </div>
 
-                {viewSelectedAccountData.synced_files.length === 0 ? (
+                {selectedDataSource.synced_files?.length === 0 ? (
                   <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-grow">
                     <p className="cc-text-gray-500 cc-text-sm">
                       No files synced
@@ -748,13 +764,9 @@ const ThirdPartyHome = ({
 
             {activeTab === 'config' && (
               <div className="cc-flex cc-flex-row cc-w-full cc-border cc-rounded-md cc-border-gray-300 cc-mt-4 cc-px-4 cc-py-4 cc-items-center cc-space-x-4">
-                <h1 className="cc-grow cc-font-semibold">
-                  {viewSelectedAccountData.data_source_external_id.split(
-                    '|'
-                  )[1] ||
-                    viewSelectedAccountData.data_source_external_id.split(
-                      '-'
-                    )[1]}
+                <h1 className="cc-grow">
+                  <span className="cc-font-semibold">{dataSourceEmail}</span>
+                  {dataSourceDomain ? ` (${dataSourceDomain})` : null}
                 </h1>
                 <VscSync
                   onClick={resyncDataSource}
@@ -770,13 +782,13 @@ const ThirdPartyHome = ({
                       {
                         accessToken: accessToken,
                         environment: environment,
-                        dataSourceId: viewSelectedAccountData.id,
+                        dataSourceId: selectedDataSource.id,
                       }
                     );
                     if (revokeAccessResponse.status === 200) {
                       toast.success('Successfully disconnected account');
                       setIsRevokingDataSource(false);
-                      setViewSelectedAccountData(null);
+                      setSelectedDataSource(null);
                       setActiveStep(1);
                     } else {
                       toast.error('Error disconnecting account');
@@ -831,6 +843,36 @@ const ThirdPartyHome = ({
                 )) ||
                 (integrationName == 'S3' && (
                   <S3Screen
+                    buttonColor={
+                      integrationData?.branding?.header?.primaryButtonColor
+                    }
+                    labelColor={
+                      integrationData?.branding?.header?.primaryLabelColor
+                    }
+                  />
+                )) ||
+                (integrationName == 'FRESHDESK' && (
+                  <FreshdeskScreen
+                    buttonColor={
+                      integrationData?.branding?.header?.primaryButtonColor
+                    }
+                    labelColor={
+                      integrationData?.branding?.header?.primaryLabelColor
+                    }
+                  />
+                )) ||
+                (integrationName == 'GITBOOK' && (
+                  <GitbookScreen
+                    buttonColor={
+                      integrationData?.branding?.header?.primaryButtonColor
+                    }
+                    labelColor={
+                      integrationData?.branding?.header?.primaryLabelColor
+                    }
+                  />
+                )) ||
+                (integrationName == 'SALESFORCE' && (
+                  <SalesforceScreen
                     buttonColor={
                       integrationData?.branding?.header?.primaryButtonColor
                     }

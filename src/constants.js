@@ -16,7 +16,7 @@ export const onSuccessEvents = {
 export const SYNC_FILES_ON_CONNECT = true
 
 export const TWO_STEP_CONNECTORS = [
-  'ZENDESK', 'SHAREPOINT', 'CONFLUENCE', 'SALESFORCE', 'S3'
+  'ZENDESK', 'SHAREPOINT', 'CONFLUENCE', 'SALESFORCE', 'S3', 'FRESHDESK', 'GITBOOK'
 ]
 
 export const THIRD_PARTY_CONNECTORS = [
