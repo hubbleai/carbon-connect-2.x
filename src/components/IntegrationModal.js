@@ -59,10 +59,6 @@ const IntegrationModal = ({
         const oldIntegration = oldIntegrations.find(
           (oldIntegration) => oldIntegration.id === newIntegration.id
         );
-
-        // if (newIntegration.data_source_type === 'GOOGLE_DRIVE')
-        //   console.log('Integration: ', newIntegration, oldIntegration);
-
         if (!oldIntegration) {
           const onSuccessObject = {
             status: 200,
@@ -71,33 +67,11 @@ const IntegrationModal = ({
             event: onSuccessEvents.ADD,
             data: {
               data_source_external_id: newIntegration.data_source_external_id,
-              files: null,
               sync_status: newIntegration.sync_status,
             },
           };
 
           response.push(onSuccessObject);
-
-          if (
-            newIntegration?.data_source_type === 'NOTION' ||
-            newIntegration?.data_source_type === 'INTERCOM'
-          ) {
-            // setFlag(newIntegration?.data_source_type, false);
-            const onSuccessObject = {
-              status: 200,
-              integration: newIntegration.data_source_type,
-              action: onSuccessEvents.UPDATE,
-              event: onSuccessEvents.UPDATE,
-              data: {
-                data_source_external_id: newIntegration.data_source_external_id,
-                files: newIntegration?.synced_files || [],
-                sync_status: newIntegration.sync_status,
-              },
-            };
-            response.push(onSuccessObject);
-          }
-          // setFlag(newIntegration?.data_source_type, false);
-          // continue;
         } else if (
           oldIntegration?.last_synced_at !== newIntegration?.last_synced_at &&
           newIntegration?.last_sync_action === 'CANCEL'
@@ -109,76 +83,25 @@ const IntegrationModal = ({
             event: onSuccessEvents.CANCEL,
             data: {
               data_source_external_id: newIntegration.data_source_external_id,
-              files: null, //newIntegration?.synced_files || [],
               sync_status: newIntegration.sync_status,
             },
           };
-          // setFlag(newIntegration?.data_source_type, false);
           response.push(onSuccessObject);
-          continue;
         } else if (
           oldIntegration?.last_synced_at !== newIntegration?.last_synced_at &&
           newIntegration?.last_sync_action === 'UPDATE'
         ) {
-          const newFiles = newIntegration?.synced_files || [];
-          const oldFiles = oldIntegration?.synced_files || [];
-
-          const additions = [];
-          const deletions = [];
-          const reselections = [];
-          for (let j = 0; j < newFiles.length; j++) {
-            const newFileObject = newFiles[j];
-            const oldFileObject = oldFiles.find(
-              (oldFile) => oldFile.id === newFileObject.id
-            );
-
-            if (!oldFileObject) {
-              additions.push({ ...newFileObject, action: onSuccessEvents.ADD });
-              continue;
-            }
-            if (oldFileObject.updated_at !== newFileObject.updated_at) {
-              reselections.push({
-                ...newFileObject,
-                action: onSuccessEvents.UPDATE,
-              });
-            }
-          }
-
-          for (let j = 0; j < oldFiles.length; j++) {
-            const oldFileObject = oldFiles[j];
-            const newFileObject = newFiles.find(
-              (newFile) => newFile.id === oldFileObject.id
-            );
-
-            if (!newFileObject) {
-              deletions.push({
-                ...oldFileObject,
-                action: onSuccessEvents.REMOVE,
-              });
-            }
-          }
-
-          const fileModifications = [
-            ...additions,
-            ...reselections,
-            ...deletions,
-          ];
-
-          if (fileModifications.length > 0) {
-            const onSuccessObject = {
-              status: 200,
-              integration: newIntegration.data_source_type,
-              action: onSuccessEvents.UPDATE,
-              event: onSuccessEvents.UPDATE,
-              data: {
-                data_source_external_id: newIntegration.data_source_external_id,
-                files: fileModifications,
-                sync_status: newIntegration.sync_status,
-              },
-            };
-            // setFlag(newIntegration?.data_source_type, false);
-            response.push(onSuccessObject);
-          }
+          const onSuccessObject = {
+            status: 200,
+            integration: newIntegration.data_source_type,
+            action: onSuccessEvents.UPDATE,
+            event: onSuccessEvents.UPDATE,
+            data: {
+              data_source_external_id: newIntegration.data_source_external_id,
+              sync_status: newIntegration.sync_status,
+            },
+          };
+          response.push(onSuccessObject);
         }
       }
 
@@ -191,12 +114,12 @@ const IntegrationModal = ({
   const fetchUserIntegrationsHelper = async () => {
     try {
       const userIntegrationsResponse = await authenticatedFetch(
-        `${BASE_URL[environment]}/integrations/`,
+        `${BASE_URL[environment]}/integrations/?${new URLSearchParams({ "include_files": false })}`,
         {
           method: 'GET',
           headers: {
             Authorization: `Token ${accessToken}`,
-          },
+          }
         }
       );
 
@@ -240,8 +163,8 @@ const IntegrationModal = ({
   useEffect(() => {
     if (accessToken && showModal) {
       fetchUserIntegrations();
-      // Then set up the interval to call it every 5 seconds
-      const intervalId = setInterval(fetchUserIntegrations, 5000); // 5000 ms = 5 s
+      // Then set up the interval to call it every 7.5 seconds
+      const intervalId = setInterval(fetchUserIntegrations, 7500);
       // Make sure to clear the interval when the component unmounts
       return () => clearInterval(intervalId);
     }

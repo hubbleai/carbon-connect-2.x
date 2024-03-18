@@ -71,7 +71,7 @@ export const CarbonProvider = ({
       const response = await fetch(url, {
         body: options.body,
         method: options.method,
-        headers: options.headers,
+        headers: options.headers
       });
 
       if (response.status === 401 && retry) {

@@ -49,6 +49,7 @@ const ThirdPartyHome = ({
   const [selectedDataSource, setSelectedDataSource] = useState(null);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [filesLoading, setFilesLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('files'); // ['files', 'config']
   const [isRevokingDataSource, setIsRevokingDataSource] = useState(false);
   const [isResyncingDataSource, setIsResyncingDataSource] = useState(false);
@@ -131,10 +132,11 @@ const ThirdPartyHome = ({
   }, [sortedFiles, searchQuery]);
 
   useEffect(() => {
-    if (!showFileSelector && selectedDataSource?.id) {
+    if (selectedDataSource?.id) {
+      setFilesLoading(true)
       loadMoreRows();
     }
-  }, [showFileSelector]);
+  }, [selectedDataSource?.id]);
 
   const loadMoreRows = async () => {
     const userFilesResponse = await getUserFiles({
@@ -147,6 +149,7 @@ const ThirdPartyHome = ({
       order_by: "updated_at",
       order_dir: "desc"
     });
+    if (filesLoading) setFilesLoading(false)
 
     if (userFilesResponse.status === 200) {
       const count = userFilesResponse.data.count;
@@ -673,7 +676,7 @@ const ThirdPartyHome = ({
                   </div>
                 </div>
 
-                {selectedDataSource.synced_files?.length === 0 ? (
+                {files.length === 0 && !filesLoading ? (
                   <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-grow">
                     <p className="cc-text-gray-500 cc-text-sm">
                       No files synced
