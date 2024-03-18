@@ -52,21 +52,13 @@ const CarbonAnnouncement = ({ setActiveStep, activeIntegrations }) => {
   const isWhiteLabeledOrg = Boolean(whiteLabelingData?.remove_branding);
   const isWhiteLabeledEntryPoint = Boolean(
     isEntryPoint &&
-      whiteLabelingData?.integrations &&
-      whiteLabelingData?.integrations?.[entryPoint]
+    whiteLabelingData?.integrations &&
+    whiteLabelingData?.integrations?.[entryPoint]
   );
 
   const handleButtonClick = () => {
     if (entryPointIntegrationObject?.active) {
-      if (!entryPointIntegrationObject?.requiresOAuth) {
-        setActiveStep(entryPointIntegrationObject.data_source_type);
-      } else {
-        if (entryPointIntegrationObject?.multiStep) {
-          setActiveStep(entryPointIntegrationObject.data_source_type);
-          return;
-        }
-        handleServiceOAuthFlow(entryPointIntegrationObject);
-      }
+      setActiveStep(entryPointIntegrationObject.data_source_type);
     } else {
       setActiveStep(1);
     }
@@ -153,9 +145,8 @@ const CarbonAnnouncement = ({ setActiveStep, activeIntegrations }) => {
         <div className="cc-flex cc-flex-col cc-space-y-3 cc-w-full cc-items-center">
           {isWhiteLabeledOrg ? (
             <p className="cc-text-xs cc-text-center cc-text-gray-400">
-              {`By continuing, you agree to ${
-                isWhiteLabeledEntryPoint ? orgName + "'s" : 'the following'
-              }`}
+              {`By continuing, you agree to ${isWhiteLabeledEntryPoint ? orgName + "'s" : 'the following'
+                }`}
 
               <br></br>
               <a
@@ -198,39 +189,22 @@ const CarbonAnnouncement = ({ setActiveStep, activeIntegrations }) => {
             </p>
           )}
 
-          {entryPoint === 'GOOGLE_DRIVE' ? (
-            <div
-              className="cc-bg-google-blue cc-w-52 cc-h-11 cc-rounded-sm cc-shadow-md cc-relative cc-cursor-pointer hover:cc-shadow-lg active:cc-bg-button-active-blue cc-flex cc-flex-row cc-p-0.5 cc-space-x-[1.125rem] cc-items-center"
-              onClick={handleButtonClick}
-            >
-              <div className="cc-bg-white cc-w-10 cc-h-10 cc-rounded-sm cc-flex">
-                <img
-                  className="cc-w-5 cc-h-5 cc-items-center cc-justify-center cc-m-auto"
-                  src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
-                  alt="Google logo"
-                />
-              </div>
-              <p className="cc-text-white cc-text-sm cc-items-center cc-justify-center cc-font-roboto cc-font-medium">
-                <b>Sign in with Google</b>
-              </p>
-            </div>
-          ) : (
-            <button
-              className="cc-w-full cc-h-12 cc-flex cc-flex-row cc-items-center cc-justify-center cc-rounded-md cc-cursor-pointer"
-              style={{
-                backgroundColor: connectButtonHoveredState
-                  ? darkenColor(primaryBackgroundColor, -10)
-                  : primaryBackgroundColor,
+          <button
+            className="cc-w-full cc-h-12 cc-flex cc-flex-row cc-items-center cc-justify-center cc-rounded-md cc-cursor-pointer"
+            style={{
+              backgroundColor: connectButtonHoveredState
+                ? darkenColor(primaryBackgroundColor, -10)
+                : primaryBackgroundColor,
 
-                color: primaryTextColor,
-              }}
-              onClick={handleButtonClick}
-              onMouseEnter={() => setConnectButtonHoveredState(true)}
-              onMouseLeave={() => setConnectButtonHoveredState(false)}
-            >
-              <p>Connect</p>
-            </button>
-          )}
+              color: primaryTextColor,
+            }}
+            onClick={handleButtonClick}
+            onMouseEnter={() => setConnectButtonHoveredState(true)}
+            onMouseLeave={() => setConnectButtonHoveredState(false)}
+          >
+            <p>Connect</p>
+          </button>
+
 
           {navigateBackURL && (
             <p

@@ -144,6 +144,8 @@ const ThirdPartyHome = ({
       filters: {
         organization_user_data_source_id: [selectedDataSource.id],
       },
+      order_by: "updated_at",
+      order_dir: "desc"
     });
 
     if (userFilesResponse.status === 200) {
@@ -168,21 +170,25 @@ const ThirdPartyHome = ({
   };
 
   const dateCellRenderer = ({ cellData }) => {
-    const dateString = new Date(cellData).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-    });
+    let value = "NA"
+    if (cellData) {
+      const dateString = new Date(cellData).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+      });
 
-    const timeString = new Date(cellData).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      // second: '2-digit',
-      hour12: true,
-    });
+      const timeString = new Date(cellData).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        // second: '2-digit',
+        hour12: true,
+      });
+      value = `${dateString} ${timeString}`
+    }
 
     return (
-      <span className="cc-inline-block cc-mx-0.5 cc-py-1 cc-text-xs cc-font-normal cc-rounded-full cc-text-center ">{`${dateString} ${timeString}`}</span>
+      <span className="cc-inline-block cc-mx-0.5 cc-py-1 cc-text-xs cc-font-normal cc-rounded-full cc-text-center ">{value}</span>
     );
   };
 
@@ -409,7 +415,7 @@ const ThirdPartyHome = ({
         oauthWindow.document.body.innerHTML = oAuthURLResponseData.detail
       }
     } catch (err) {
-      console.log('[ThirdPartyHome.js] Error in handleServiceOAuthFlow: ', err);
+      console.log('[ThirdPartyHome.js] Error in sending Oauth request: ', err);
     }
   };
 

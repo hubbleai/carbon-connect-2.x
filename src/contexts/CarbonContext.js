@@ -124,6 +124,7 @@ export const CarbonProvider = ({
     }
   };
 
+  // todo - handle multiple data sources - this is used for white labeling
   const handleServiceOAuthFlow = async (service) => {
     try {
       // const alreadyActiveOAuth = getFlag(service?.data_source_type);
@@ -168,7 +169,9 @@ export const CarbonProvider = ({
             generate_sparse_vectors: generateSparseVectorsValue,
             prepend_filename_to_chunks: prependFilenameToChunksValue,
             ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
-            sync_files_on_connection: syncFilesOnConnection
+            sync_files_on_connection: syncFilesOnConnection,
+            set_page_as_boundary: setPageAsBoundaryValue,
+            connecting_new_account: true
           }),
         }
       );
@@ -273,7 +276,8 @@ export const CarbonProvider = ({
     embeddingModel,
     generateSparseVectors,
     prependFilenameToChunks,
-    maxItemsPerChunk
+    maxItemsPerChunk,
+    setPageAsBoundary
   };
 
   return (

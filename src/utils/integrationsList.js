@@ -48,7 +48,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'BOX',
         requiresOAuth: true,
         multiStep: false,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#d1f2ff',
@@ -74,7 +73,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'CONFLUENCE',
         requiresOAuth: true,
         multiStep: true,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#d6e7ff',
@@ -100,7 +98,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'DROPBOX',
         requiresOAuth: true,
         multiStep: false,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#d6ecfc',
@@ -151,7 +148,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'LOCAL_FILES',
         requiresOAuth: false,
         multiStep: false,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#dadfe8',
@@ -195,6 +191,7 @@ export const INTEGRATIONS_LIST = [
         active: true,
         data_source_type: 'GMAIL',
         requiresOAuth: true,
+        multiStep: false,
         integrationsListViewTitle: 'Connect your Gmail',
         branding: {
             header: {
@@ -218,7 +215,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'GOOGLE_DRIVE',
         requiresOAuth: true,
         multiStep: false,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#c9ddff',
@@ -244,7 +240,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'INTERCOM',
         requiresOAuth: true,
         multiStep: false,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#d6ecfc',
@@ -270,7 +265,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'NOTION',
         requiresOAuth: true,
         multiStep: false,
-        supportsMultipleAccounts: true,
         branding: {
             header: {
                 primaryBackgroundColor: '#dadfe8',
@@ -296,7 +290,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'ONEDRIVE',
         requiresOAuth: true,
         multiStep: false,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#d6ebff',
@@ -396,7 +389,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'SHAREPOINT',
         requiresOAuth: true,
         multiStep: true,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#c8f5f7',
@@ -422,7 +414,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'WEB_SCRAPER',
         requiresOAuth: false,
         multiStep: false,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#dadfe8',
@@ -448,7 +439,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'ZENDESK',
         requiresOAuth: true,
         multiStep: true,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#dadfe8',
@@ -474,7 +464,6 @@ export const INTEGRATIONS_LIST = [
         data_source_type: 'ZOTERO',
         requiresOAuth: true,
         multiStep: false,
-        supportsMultipleAccounts: false,
         branding: {
             header: {
                 primaryBackgroundColor: '#ffc4c9',
