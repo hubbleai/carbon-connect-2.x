@@ -43,14 +43,34 @@ const ThirdPartyHome = ({
   activeIntegrations,
   setActiveStep,
 }) => {
+  const {
+    accessToken,
+    processedIntegrations,
+    entryPoint,
+    authenticatedFetch,
+    environment,
+    tags,
+    topLevelChunkSize,
+    topLevelOverlapSize,
+    defaultChunkSize,
+    defaultOverlapSize,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk,
+    onSuccess,
+    setPageAsBoundary,
+    showFilesTab
+  } = useCarbon();
+
   const [service, setService] = useState(null);
   const [integrationData, setIntegrationData] = useState(null);
   const [connected, setConnected] = useState([]);
   const [selectedDataSource, setSelectedDataSource] = useState(null);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [filesLoading, setFilesLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('files'); // ['files', 'config']
+  const [filesLoading, setFilesLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState(showFilesTab ? 'files' : 'config'); // ['files', 'config']
   const [isRevokingDataSource, setIsRevokingDataSource] = useState(false);
   const [isResyncingDataSource, setIsResyncingDataSource] = useState(false);
 
@@ -69,24 +89,6 @@ const ThirdPartyHome = ({
     sortDirection: 'ASC',
   });
 
-  const {
-    accessToken,
-    processedIntegrations,
-    entryPoint,
-    authenticatedFetch,
-    environment,
-    tags,
-    topLevelChunkSize,
-    topLevelOverlapSize,
-    defaultChunkSize,
-    defaultOverlapSize,
-    embeddingModel,
-    generateSparseVectors,
-    prependFilenameToChunks,
-    maxItemsPerChunk,
-    onSuccess,
-    setPageAsBoundary
-  } = useCarbon();
 
   // Fetching the active service data
   useEffect(() => {
@@ -109,18 +111,16 @@ const ThirdPartyHome = ({
       (integration) => integration.data_source_type === integrationName
     );
     setConnected(connected);
-
-    if (connected.length === 1 && selectedDataSource === null) {
-      setSelectedDataSource(connected[0]);
+    if (selectedDataSource === null && connected.length) {
+      if (connected.length === 1) {
+        setSelectedDataSource(connected[0]);
+      } else {
+        const sorted = connected.sort((a, b) => b.id - a.id)
+        setSelectedDataSource(sorted[0])
+      }
     }
     setIsLoading(false)
   }, [activeIntegrations.map(i => i.id).join(",")]);
-
-  useEffect(() => {
-    if (selectedDataSource) {
-      loadMoreRows();
-    }
-  }, [selectedDataSource]);
 
   useEffect(() => {
     if (!files.length) return;
@@ -133,12 +133,14 @@ const ThirdPartyHome = ({
 
   useEffect(() => {
     if (selectedDataSource?.id) {
+      setFiles([])
       setFilesLoading(true)
-      loadMoreRows();
+      loadMoreRows().then(() => setFilesLoading(false));
     }
   }, [selectedDataSource?.id]);
 
   const loadMoreRows = async () => {
+    if (!showFilesTab) return
     const userFilesResponse = await getUserFiles({
       accessToken: accessToken,
       environment: environment,
@@ -146,10 +148,9 @@ const ThirdPartyHome = ({
       filters: {
         organization_user_data_source_id: [selectedDataSource.id],
       },
-      order_by: "updated_at",
+      order_by: "created_at",
       order_dir: "desc"
     });
-    if (filesLoading) setFilesLoading(false)
 
     if (userFilesResponse.status === 200) {
       const count = userFilesResponse.data.count;
@@ -435,32 +436,6 @@ const ThirdPartyHome = ({
     setSearchQuery(event.target.value);
   };
 
-  const resyncDataSource = async () => {
-    setIsResyncingDataSource(true);
-    const requestBody = {
-      data_source_id: selectedDataSource.id,
-    };
-
-    const resyncDataSourceResponse = await authenticatedFetch(
-      `${BASE_URL[environment]}/integrations/items/sync`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Token ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      }
-    );
-
-    if (resyncDataSourceResponse.status === 200) {
-      toast.success('Fetching files');
-    } else {
-      toast.error('Error fetching files');
-    }
-    setIsResyncingDataSource(false);
-  };
-
   const handleUploadFilesClick = () => {
     if (SYNC_URL_BASED_CONNECTORS.includes(integrationName) && selectedDataSource) {
       const dataSourceType = selectedDataSource.data_source_type
@@ -534,7 +509,7 @@ const ThirdPartyHome = ({
                     '#000000',
                 }}
               >
-                {integrationData?.description}
+                {`Connect your ${integrationData?.name} account`}
               </div>
             </div>
 
@@ -619,7 +594,7 @@ const ThirdPartyHome = ({
         ) : selectedDataSource ? (
           <div className="cc-flex-col cc-flex md:cc-translate-y-4 cc-text-sm cc-h-full cc-mb-4">
             <div className="cc-flex cc-border-b cc-mb-0">
-              <button
+              {showFilesTab ? <button
                 className={`cc-flex cc-py-2 cc-px-2 cc-text-center cc-cursor-pointer ${activeTab === 'files'
                   ? 'cc-border-b-4 cc-font-bold'
                   : 'cc-font-normal'
@@ -627,7 +602,7 @@ const ThirdPartyHome = ({
                 onClick={() => setActiveTab('files')}
               >
                 Files
-              </button>
+              </button> : null}
               <button
                 className={`cc-flex cc-py-2 cc-px-2 cc-text-center cc-cursor-pointer ${activeTab === 'config'
                   ? 'cc-border-b-2 cc-font-bold'
@@ -681,6 +656,17 @@ const ThirdPartyHome = ({
                     <p className="cc-text-gray-500 cc-text-sm">
                       No files synced
                     </p>
+                  </div>) : null}
+
+                {filesLoading ? (
+                  <div className="cc-self-center">
+                    <div role="status">
+                      <svg aria-hidden="true" class="cc-w-8 cc-h-8 cc-text-gray-200 cc-animate-spin cc-dark:text-gray-600 cc-fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+                        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+                      </svg>
+                      <span class="cc-sr-only">Loading...</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="cc-flex cc-w-full cc-grow cc-flex-col cc-pb-4">
@@ -780,11 +766,6 @@ const ThirdPartyHome = ({
                   <span className="cc-font-semibold">{dataSourceEmail}</span>
                   {dataSourceDomain ? ` (${dataSourceDomain})` : null}
                 </h1>
-                <VscSync
-                  onClick={resyncDataSource}
-                  className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${isResyncingDataSource ? 'animate-spin' : ''
-                    }`}
-                />
 
                 <button
                   className="cc-text-red-600 cc-bg-red-200 cc-px-4 cc-py-2 cc-font-semibold cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"

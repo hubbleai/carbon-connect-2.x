@@ -206,6 +206,7 @@ export interface CarbonConnectProps {
   prependFilenameToChunks?: boolean;
   maxItemsPerChunk?: number;
   setPageAsBoundary?: boolean;
+  showFilesTab?: boolean;
 }
 
 const CarbonConnect: React.FC<CarbonConnectProps> = ({
@@ -263,6 +264,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
   prependFilenameToChunks = false,
   maxItemsPerChunk = null,
   setPageAsBoundary = false,
+  showFilesTab = true,
 }) => {
   const [activeStep, setActiveStep] = useState<string | number>(
     entryPoint === "LOCAL_FILES" || entryPoint === "WEB_SCRAPER"
@@ -305,6 +307,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       prependFilenameToChunks={prependFilenameToChunks}
       maxItemsPerChunk={maxItemsPerChunk}
       setPageAsBoundary={setPageAsBoundary}
+      showFilesTab={showFilesTab}
     >
       <IntegrationModal
         orgName={orgName}

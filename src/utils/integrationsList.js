@@ -115,7 +115,7 @@ export const INTEGRATIONS_LIST = [
         id: 'FRESHDESK',
         subpath: 'freshdesk',
         name: 'Freshdesk',
-        description: 'Lets your users connect their Freshdesk accounts to Carbon.',
+        description: 'Lets your users connect their Freshdesk accounts to Carbon. And then',
         announcementName: 'to connect Freshdesk',
         icon: <img src={FreshdeskLogo} className="cc-w-7 cc-h-7" />,
         logo: FreshdeskLogo,

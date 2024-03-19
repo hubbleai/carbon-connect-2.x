@@ -180,6 +180,7 @@ export interface CarbonConnectProps {
     prependFilenameToChunks?: boolean;
     maxItemsPerChunk?: number;
     setPageAsBoundary?: boolean;
+    showFilesTab?: boolean;
 }
 declare const CarbonConnect: React.FC<CarbonConnectProps>;
 export { CarbonConnect };

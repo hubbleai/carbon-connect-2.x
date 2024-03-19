@@ -452,7 +452,7 @@ function FileUpload({ setActiveStep }) {
 
 
   return (
-    <div className="cc-flex cc-flex-col cc-items-center cc-relative cc-h-full">
+    <div className="cc-flex cc-flex-col cc-items-center cc-relative cc-h-full cc-p-4">
       <Dialog.Title className="cc-text-lg cc-mb-4 cc-font-medium cc-w-full">
         <div className="cc-w-full cc-flex cc-items-center cc-space-x-4">
           {!entryPoint && (

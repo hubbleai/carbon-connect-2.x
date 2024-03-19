@@ -43,7 +43,8 @@ export const CarbonProvider = ({
   generateSparseVectors,
   prependFilenameToChunks,
   maxItemsPerChunk,
-  setPageAsBoundary
+  setPageAsBoundary,
+  showFilesTab
 }) => {
   const [showModal, setShowModal] = useState(open);
   const [loading, setLoading] = useState(false);
@@ -277,7 +278,8 @@ export const CarbonProvider = ({
     generateSparseVectors,
     prependFilenameToChunks,
     maxItemsPerChunk,
-    setPageAsBoundary
+    setPageAsBoundary,
+    showFilesTab
   };
 
   return (
