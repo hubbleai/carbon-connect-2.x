@@ -68,9 +68,11 @@ const ThirdPartyHome = ({
   const [connected, setConnected] = useState([]);
   const [selectedDataSource, setSelectedDataSource] = useState(null);
 
+  const shouldShowFilesTab = showFilesTab || integrationData?.showFilesTab;
+
   const [isLoading, setIsLoading] = useState(true);
   const [filesLoading, setFilesLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState(showFilesTab ? 'files' : 'config'); // ['files', 'config']
+  const [activeTab, setActiveTab] = useState(''); // ['files', 'config']
   const [isRevokingDataSource, setIsRevokingDataSource] = useState(false);
 
   const [showAdditionalStep, setShowAdditionalStep] = useState(false);
@@ -87,7 +89,6 @@ const ThirdPartyHome = ({
     sortDirection: 'ASC',
   });
 
-
   // Fetching the active service data
   useEffect(() => {
     setService(
@@ -96,6 +97,10 @@ const ThirdPartyHome = ({
       )
     );
   }, [processedIntegrations]);
+
+  useEffect(() => {
+    setActiveTab(shouldShowFilesTab ? 'files' : 'config')
+  }, [shouldShowFilesTab])
 
   useEffect(() => {
     const integrationData = processedIntegrations.find(
@@ -140,7 +145,7 @@ const ThirdPartyHome = ({
   }, [selectedDataSource?.id]);
 
   const loadMoreRows = async () => {
-    if (!showFilesTab) return
+    if (!shouldShowFilesTab) return
     const userFilesResponse = await getUserFiles({
       accessToken: accessToken,
       environment: environment,
@@ -594,7 +599,7 @@ const ThirdPartyHome = ({
         ) : selectedDataSource ? (
           <div className="cc-flex-col cc-flex md:cc-translate-y-4 cc-text-sm cc-h-full cc-mb-4">
             <div className="cc-flex cc-border-b cc-mb-0">
-              {showFilesTab ? <button
+              {shouldShowFilesTab ? <button
                 className={`cc-flex cc-py-2 cc-px-2 cc-text-center cc-cursor-pointer ${activeTab === 'files'
                   ? 'cc-border-b-4 cc-font-bold'
                   : 'cc-font-normal'

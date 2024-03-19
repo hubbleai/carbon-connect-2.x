@@ -68,6 +68,7 @@ export interface BaseIntegration {
   maxItemsPerChunk?: number;
   syncFilesOnConnection?: boolean;
   setPageAsBoundary?: boolean;
+  showFilesTab?: boolean;
 }
 export interface LocalFilesIntegration extends BaseIntegration {
   maxFileSize: number;
