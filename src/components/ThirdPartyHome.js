@@ -72,7 +72,6 @@ const ThirdPartyHome = ({
   const [filesLoading, setFilesLoading] = useState(false)
   const [activeTab, setActiveTab] = useState(showFilesTab ? 'files' : 'config'); // ['files', 'config']
   const [isRevokingDataSource, setIsRevokingDataSource] = useState(false);
-  const [isResyncingDataSource, setIsResyncingDataSource] = useState(false);
 
   const [showAdditionalStep, setShowAdditionalStep] = useState(false);
   const [files, setFiles] = useState([]);
@@ -83,7 +82,6 @@ const ThirdPartyHome = ({
   const [hasMoreFiles, setHasMoreFiles] = useState(true);
   const [offset, setOffset] = useState(0);
 
-  const [showFileSelector, setShowFileSelector] = useState(false);
   const [sortState, setSortState] = useState({
     sortBy: '',
     sortDirection: 'ASC',
@@ -134,6 +132,8 @@ const ThirdPartyHome = ({
   useEffect(() => {
     if (selectedDataSource?.id) {
       setFiles([])
+      setSortedFiles([])
+      setFilteredFiles([])
       setFilesLoading(true)
       loadMoreRows().then(() => setFilesLoading(false));
     }
@@ -668,7 +668,7 @@ const ThirdPartyHome = ({
                       <span class="cc-sr-only">Loading...</span>
                     </div>
                   </div>
-                ) : (
+                ) : filteredFiles.length > 0 && (
                   <div className="cc-flex cc-w-full cc-grow cc-flex-col cc-pb-4">
                     <InfiniteLoader
                       isRowLoaded={isRowLoaded}
