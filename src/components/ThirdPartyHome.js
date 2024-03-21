@@ -19,6 +19,7 @@ import {
   getUserFiles,
   revokeAccessToDataSource,
   resyncFile,
+  deleteFiles
 } from 'carbon-connect-js';
 import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT, SYNC_URL_BASED_CONNECTORS, TWO_STEP_CONNECTORS } from '../constants';
 import { VscDebugDisconnect, VscLoading, VscSync } from 'react-icons/vsc';
@@ -26,7 +27,8 @@ import { IoCloudUploadOutline } from 'react-icons/io5';
 import { CiCircleList } from 'react-icons/ci';
 import 'react-virtualized/styles.css'; // import styles
 import resyncIcon from '../logos/resyncIcon.svg';
-import FileSelector from './FileSelector';
+import deleteIcon from '../logos/delete-button.svg';
+import { MdOutlineCloudUpload } from "react-icons/md";
 
 import ZendeskScreen from './ZendeskScreen';
 import ConfluenceScreen from './ConfluenceScreen';
@@ -262,6 +264,17 @@ const ThirdPartyHome = ({
     );
   };
 
+  const deleteCellRenderer = ({ rowData }) => {
+    return (
+      <img
+        className="cc-w-4 cc-h-4 cc-border-gray-300 cc-focus:cc-ring-0 cc-focus:cc-border-black cc-cursor-pointer cc-flex cc-items-center cc-justify-center cc-mx-auto"
+        src={deleteIcon}
+        alt="Delete File"
+        onClick={() => handleDeleteFile(rowData)}
+      />
+    );
+  };
+
   const performFileResync = async (rowData) => {
     const chunkSize =
       service?.chunkSize || topLevelChunkSize || defaultChunkSize;
@@ -302,6 +315,26 @@ const ThirdPartyHome = ({
       console.error('Error resyncing file: ', resyncFileResponse.error);
     }
   };
+
+  const handleDeleteFile = async (rowData) => {
+    const deleteFileResponse = await deleteFiles({
+      accessToken: accessToken,
+      environment: environment,
+      fileIds: [rowData.id],
+    });
+    if (deleteFileResponse.status === 200) {
+      const newFiles = [...files.filter(file => file.id !== rowData.id)]
+      const newSortedFiles = [...sortedFiles.filter(file => file.id !== rowData.id)]
+
+      setFiles(newFiles)
+      setSortedFiles(newSortedFiles)
+
+      toast.success("File queued for deletion")
+    } else {
+      toast.error('Error deleting file');
+      console.error('Error deleting file: ', deleteFileResponse.error);
+    }
+  }
 
   const headerRenderer = ({ label, dataKey }) => (
     <div className="cc-flex cc-flex-row cc-items-center cc-space-x-2 cc-text-left cc-text-xs cc-font-normal cc-text-gray-500 cc-py-1 cc-capitalize cc-px-0 cc-truncate">
@@ -727,7 +760,7 @@ const ThirdPartyHome = ({
                                   <Column
                                     label="File Name"
                                     dataKey="name"
-                                    width={width / 3}
+                                    width={width / 2.5}
                                     className="cc-text-xs"
                                     headerRenderer={headerRenderer}
                                     sortBy={sortState.sortBy}
@@ -735,7 +768,7 @@ const ThirdPartyHome = ({
                                   <Column
                                     label="Status"
                                     dataKey="sync_status"
-                                    width={width / 4}
+                                    width={width / 5}
                                     cellRenderer={statusCellRenderer}
                                     headerRenderer={headerRenderer}
                                   />
@@ -747,10 +780,17 @@ const ThirdPartyHome = ({
                                     headerRenderer={headerRenderer}
                                   />
                                   <Column
-                                    label=""
-                                    dataKey=""
-                                    width={50}
+                                    label="Resync"
+                                    dataKey="resync"
+                                    width={25}
                                     cellRenderer={resyncCellRenderer}
+                                    headerRenderer={() => <></>}
+                                  />
+                                  <Column
+                                    label="Delete"
+                                    dataKey="delete"
+                                    width={25}
+                                    cellRenderer={deleteCellRenderer}
                                     headerRenderer={() => <></>}
                                   />
                                 </Table>
@@ -767,10 +807,14 @@ const ThirdPartyHome = ({
 
             {activeTab === 'config' && (
               <div className="cc-flex cc-flex-row cc-w-full cc-border cc-rounded-md cc-border-gray-300 cc-mt-4 cc-px-4 cc-py-4 cc-items-center cc-space-x-4">
-                <h1 className="cc-grow">
+                <p className="cc-grow">
                   <span className="cc-font-semibold">{dataSourceEmail}</span>
                   {dataSourceDomain ? ` (${dataSourceDomain})` : null}
-                </h1>
+                </p>
+
+                {!shouldShowFilesTab ? <button className="cc-cursor-pointer" onClick={() => {
+                  handleUploadFilesClick()
+                }}><MdOutlineCloudUpload size={"1.75em"} /></button> : null}
 
                 <button
                   className="cc-text-red-600 cc-bg-red-200 cc-px-4 cc-py-2 cc-font-semibold cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
