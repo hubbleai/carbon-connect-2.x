@@ -34,10 +34,12 @@ const IntegrationModal = ({
   setActiveStep,
   zIndex = 1000,
   enableToasts = true,
+  requestIds
 }) => {
   const [activeIntegrations, setActiveIntegrations] = useState([]);
 
   const activeIntegrationsRef = useRef(activeIntegrations);
+  const requestIdsRef = useRef(requestIds);
   const firstFetchCompletedRef = useRef(false);
 
   const {
@@ -55,6 +57,9 @@ const IntegrationModal = ({
     try {
       for (let i = 0; i < newIntegrations.length; i++) {
         const newIntegration = newIntegrations[i];
+        const requestId = requestIdsRef.current ?
+          requestIdsRef.current[newIntegration.data_source_type] || null :
+          null
 
         const oldIntegration = oldIntegrations.find(
           (oldIntegration) => oldIntegration.id === newIntegration.id
@@ -68,6 +73,7 @@ const IntegrationModal = ({
             data: {
               data_source_external_id: newIntegration.data_source_external_id,
               sync_status: newIntegration.sync_status,
+              request_id: requestId
             },
           };
 
@@ -91,6 +97,9 @@ const IntegrationModal = ({
           oldIntegration?.last_synced_at !== newIntegration?.last_synced_at &&
           newIntegration?.last_sync_action === 'UPDATE'
         ) {
+          const requestId = requestIdsRef.current ?
+            requestIdsRef.current[newIntegration.data_source_type] || null :
+            null
           const onSuccessObject = {
             status: 200,
             integration: newIntegration.data_source_type,
@@ -99,6 +108,7 @@ const IntegrationModal = ({
             data: {
               data_source_external_id: newIntegration.data_source_external_id,
               sync_status: newIntegration.sync_status,
+              request_id: requestId
             },
           };
           response.push(onSuccessObject);
@@ -153,6 +163,10 @@ const IntegrationModal = ({
   useEffect(() => {
     activeIntegrationsRef.current = activeIntegrations;
   }, [activeIntegrations]);
+
+  useEffect(() => {
+    requestIdsRef.current = requestIds
+  }, [requestIds])
 
   const fetchUserIntegrations = async () => {
     try {

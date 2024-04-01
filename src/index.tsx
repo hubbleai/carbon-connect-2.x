@@ -208,6 +208,7 @@ export interface CarbonConnectProps {
   maxItemsPerChunk?: number;
   setPageAsBoundary?: boolean;
   showFilesTab?: boolean;
+  useRequestIds?: boolean;
 }
 
 const CarbonConnect: React.FC<CarbonConnectProps> = ({
@@ -217,7 +218,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
   tokenFetcher = () => {},
   onSuccess = () => {},
   onError = () => {},
-  tags = [],
+  tags = {},
   maxFileSize = 20000000,
   environment = "PRODUCTION",
   entryPoint = null,
@@ -266,12 +267,15 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
   maxItemsPerChunk = null,
   setPageAsBoundary = false,
   showFilesTab = true,
+  useRequestIds = false,
 }) => {
   const [activeStep, setActiveStep] = useState<string | number>(
     entryPoint === "LOCAL_FILES" || entryPoint === "WEB_SCRAPER"
       ? entryPoint
       : 0
   );
+
+  const [requestIds, setRequestIds] = useState({});
 
   return (
     <CarbonProvider
@@ -309,6 +313,9 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       maxItemsPerChunk={maxItemsPerChunk}
       setPageAsBoundary={setPageAsBoundary}
       showFilesTab={showFilesTab}
+      useRequestIds={useRequestIds}
+      requestIds={requestIds}
+      setRequestIds={setRequestIds}
     >
       <IntegrationModal
         orgName={orgName}
@@ -333,6 +340,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
         backButtonText={backButtonText}
         zIndex={zIndex}
         enableToasts={enableToasts}
+        requestIds={requestIds}
       >
         {children}
       </IntegrationModal>

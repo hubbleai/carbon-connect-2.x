@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT } from '../constants';
+import { generateRequestId } from "../utils/helpers";
 import { INTEGRATIONS_LIST } from "../utils/integrationsList";
 
 const DEFAULT_CHUNK_SIZE = 1500;
@@ -44,7 +45,10 @@ export const CarbonProvider = ({
   prependFilenameToChunks,
   maxItemsPerChunk,
   setPageAsBoundary,
-  showFilesTab
+  showFilesTab,
+  useRequestIds,
+  requestIds,
+  setRequestIds
 }) => {
   const [showModal, setShowModal] = useState(open);
   const [loading, setLoading] = useState(false);
@@ -152,6 +156,12 @@ export const CarbonProvider = ({
       const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
 
+      let requestId = null
+      if (useRequestIds) {
+        requestId = generateRequestId(20)
+        setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
+      }
+
       const oAuthURLResponse = await authenticatedFetch(
         `${BASE_URL[environment]}/integrations/oauth_url`,
         {
@@ -172,7 +182,8 @@ export const CarbonProvider = ({
             ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
             sync_files_on_connection: syncFilesOnConnection,
             set_page_as_boundary: setPageAsBoundaryValue,
-            connecting_new_account: true
+            connecting_new_account: true,
+            ...(requestId && { request_id: requestId })
           }),
         }
       );
@@ -181,7 +192,7 @@ export const CarbonProvider = ({
         // setFlag(service?.data_source_type, true);
         onSuccess({
           status: 200,
-          data: null,
+          data: { request_id: requestId },
           integration: service?.data_source_type,
           action: onSuccessEvents.INITIATE,
           event: onSuccessEvents.INITIATE,
@@ -279,7 +290,10 @@ export const CarbonProvider = ({
     prependFilenameToChunks,
     maxItemsPerChunk,
     setPageAsBoundary,
-    showFilesTab
+    showFilesTab,
+    setRequestIds,
+    requestIds,
+    useRequestIds
   };
 
   return (

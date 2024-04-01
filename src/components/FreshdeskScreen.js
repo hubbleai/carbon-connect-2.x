@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { darkenColor } from '../utils/helpers';
+import { darkenColor, generateRequestId } from '../utils/helpers';
 import { HiUpload, HiInformationCircle } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 
@@ -40,7 +40,10 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 		embeddingModel,
 		generateSparseVectors,
 		prependFilenameToChunks,
-		tags
+		tags,
+		useRequestIds,
+		requestIds,
+		setRequestIds
 	} = useCarbon();
 
 	const connectFreshdesk = async () => {
@@ -76,7 +79,13 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 				service?.generateSparseVectors || generateSparseVectors || false;
 			const prependFilenameToChunksValue =
 				service?.prependFilenameToChunks || prependFilenameToChunks || false;
-			const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
+			const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
+
+			let requestId = null
+			if (useRequestIds) {
+				requestId = generateRequestId(20)
+				setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
+			}
 
 			const domain = freshdeskdomain
 				.replace('https://www.', '')
@@ -96,7 +105,8 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 				embedding_model: embeddingModelValue,
 				generate_sparse_vectors: generateSparseVectorsValue,
 				prepend_filename_to_chunks: prependFilenameToChunksValue,
-				sync_files_on_connection: syncFilesOnConnection
+				sync_files_on_connection: syncFilesOnConnection,
+				...(requestId && { request_id: requestId })
 			};
 
 			const response = await authenticatedFetch(
@@ -114,13 +124,6 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 			const responseData = await response.json();
 
 			if (response.status === 200) {
-				onSuccess({
-					status: 200,
-					data: null,
-					action: onSuccessEvents.ADD,
-					event: onSuccessEvents.ADD,
-					integration: 'FRESHDESK',
-				});
 				toast.info('Freshdesk sync initiated.');
 				setApiKey('')
 				setFreshdeskdomain('')

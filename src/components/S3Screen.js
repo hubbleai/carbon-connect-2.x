@@ -77,13 +77,6 @@ function S3Screen({ buttonColor, labelColor }) {
 
       if (response.status === 200) {
         toast.info('S3 sync initiated.');
-        onSuccess({
-          status: 200,
-          data: null,
-          action: onSuccessEvents.ADD,
-          event: onSuccessEvents.ADD,
-          integration: 'S3',
-        });
         setAccessKey("")
         setAccessKeySecret("")
       } else {

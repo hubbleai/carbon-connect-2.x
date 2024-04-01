@@ -182,6 +182,7 @@ export interface CarbonConnectProps {
     maxItemsPerChunk?: number;
     setPageAsBoundary?: boolean;
     showFilesTab?: boolean;
+    useRequestIds?: boolean;
 }
 declare const CarbonConnect: React.FC<CarbonConnectProps>;
 export { CarbonConnect };

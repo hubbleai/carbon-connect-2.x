@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { darkenColor } from '../utils/helpers';
+import { darkenColor, generateRequestId } from '../utils/helpers';
 
 import * as Dialog from '@radix-ui/react-dialog';
 import { HiArrowLeft, HiUpload, HiInformationCircle } from 'react-icons/hi';
@@ -52,7 +52,10 @@ function SharepointScreen({ buttonColor, labelColor }) {
     generateSparseVectors,
     prependFilenameToChunks,
     maxItemsPerChunk,
-    setPageAsBoundary
+    setPageAsBoundary,
+    useRequestIds,
+    requestIds,
+    setRequestIds
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -87,6 +90,12 @@ function SharepointScreen({ buttonColor, labelColor }) {
       const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
 
+      let requestId = null
+      if (useRequestIds) {
+        requestId = generateRequestId(20)
+        setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
+      }
+
       const requestObject = {
         tags: tags,
         service: service?.data_source_type,
@@ -100,7 +109,8 @@ function SharepointScreen({ buttonColor, labelColor }) {
         prepend_filename_to_chunks: prependFilenameToChunksValue,
         ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
         connecting_new_account: true,
-        set_page_as_boundary: setPageAsBoundaryValue
+        set_page_as_boundary: setPageAsBoundaryValue,
+        ...(requestId && { request_id: requestId })
       };
 
       const response = await authenticatedFetch(
@@ -120,7 +130,7 @@ function SharepointScreen({ buttonColor, labelColor }) {
       if (response.status === 200) {
         onSuccess({
           status: 200,
-          data: null,
+          data: { request_id: requestId },
           action: onSuccessEvents.INITIATE,
           event: onSuccessEvents.INITIATE,
           integration: 'SHAREPOINT',

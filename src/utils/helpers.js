@@ -32,7 +32,7 @@ export function getDataSourceDomain(dataSource) {
 
   const parts = extId.split("|")
 
-  if (type == "SALESFORCE" || type == "ZENDESK") {
+  if (type == "SALESFORCE" || type == "ZENDESK" || type == "SHAREPOINT") {
     if (parts.length == 3) return parts[2]
     else return null
   }
@@ -56,4 +56,17 @@ export function getDataSourceEmail(dataSource) {
     if (parts.length > 1) return parts[1]
   }
   return ""
+}
+
+export function generateRequestId(length) {
+  const prefix = "cc-"
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return prefix + result;
 }

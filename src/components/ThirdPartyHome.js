@@ -38,7 +38,7 @@ import S3Screen from "./S3Screen";
 import FreshdeskScreen from "./FreshdeskScreen";
 import GitbookScreen from "./GitbookScreen";
 import SalesforceScreen from "./SalesforceScreen";
-import { getDataSourceDomain, getDataSourceEmail } from "../utils/helpers";
+import { generateRequestId, getDataSourceDomain, getDataSourceEmail } from "../utils/helpers";
 
 const ThirdPartyHome = ({
   integrationName,
@@ -62,7 +62,10 @@ const ThirdPartyHome = ({
     maxItemsPerChunk,
     onSuccess,
     setPageAsBoundary,
-    showFilesTab
+    showFilesTab,
+    requestIds,
+    useRequestIds,
+    setRequestIds
   } = useCarbon();
 
   const [service, setService] = useState(null);
@@ -392,6 +395,8 @@ const ThirdPartyHome = ({
     }
   }
 
+  console.log(useRequestIds)
+
   const sendOauthRequest = async (mode = "CONNECT", dataSourceId = null, extraParams = {}) => {
     try {
       const oauthWindow = window.open('', '_blank');
@@ -412,6 +417,12 @@ const ThirdPartyHome = ({
         service?.maxItemsPerChunk || maxItemsPerChunk || null;
       const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false
+
+      let requestId = null
+      if (useRequestIds) {
+        requestId = generateRequestId(20)
+        setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
+      }
 
       const oAuthURLResponse = await authenticatedFetch(
         `${BASE_URL[environment]}/integrations/oauth_url`,
@@ -435,7 +446,8 @@ const ThirdPartyHome = ({
             set_page_as_boundary: setPageAsBoundaryValue,
             connecting_new_account: mode == "CONNECT" ? true : false,
             ...(dataSourceId && { data_source_id: dataSourceId }),
-            ...extraParams
+            ...extraParams,
+            ...(requestId && { request_id: requestId })
           }),
         }
       );
@@ -446,7 +458,7 @@ const ThirdPartyHome = ({
         // setFlag(service?.data_source_type, true);
         onSuccess({
           status: 200,
-          data: null,
+          data: { request_id: requestId },
           integration: service?.data_source_type,
           action: onSuccessEvents.INITIATE,
           event: onSuccessEvents.INITIATE,
@@ -484,6 +496,13 @@ const ThirdPartyHome = ({
         extraParams.zendesk_subdomain = getDataSourceDomain(selectedDataSource)
       } else if (dataSourceType == "CONFLUENCE") {
         extraParams.confluence_subdomain = getDataSourceDomain(selectedDataSource)
+      } else if (dataSourceType == "SHAREPOINT") {
+        const workspace = getDataSourceDomain(selectedDataSource) || ""
+        const parts = workspace.split("/")
+        if (parts.length == 2) {
+          extraParams.microsoft_tenant = parts[0]
+          extraParams.sharepoint_site_name = parts[1]
+        }
       }
       sendOauthRequest("UPLOAD", selectedDataSource.id, extraParams)
     } else {
@@ -812,7 +831,7 @@ const ThirdPartyHome = ({
                   {dataSourceDomain ? ` (${dataSourceDomain})` : null}
                 </p>
 
-                {!shouldShowFilesTab ? <button className="cc-cursor-pointer" onClick={() => {
+                {!shouldShowFilesTab && SYNC_URL_BASED_CONNECTORS.includes(integrationName) ? <button className="cc-cursor-pointer" onClick={() => {
                   handleUploadFilesClick()
                 }}><MdOutlineCloudUpload size={"1.75em"} /></button> : null}
 
