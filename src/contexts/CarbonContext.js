@@ -48,7 +48,9 @@ export const CarbonProvider = ({
   showFilesTab,
   useRequestIds,
   requestIds,
-  setRequestIds
+  setRequestIds,
+  useOcr,
+  parsePdfTablesWithOcr
 }) => {
   const [showModal, setShowModal] = useState(open);
   const [loading, setLoading] = useState(false);
@@ -155,6 +157,8 @@ export const CarbonProvider = ({
         service?.maxItemsPerChunk || maxItemsPerChunk || false;
       const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
+      const useOcrValue = service?.useOcr || useOcr || false;
+      const parsePdfTablesWithOcrValue = service?.parsePdfTablesWithOcr || parsePdfTablesWithOcr || false;
 
       let requestId = null
       if (useRequestIds) {
@@ -183,7 +187,9 @@ export const CarbonProvider = ({
             sync_files_on_connection: syncFilesOnConnection,
             set_page_as_boundary: setPageAsBoundaryValue,
             connecting_new_account: true,
-            ...(requestId && { request_id: requestId })
+            ...(requestId && { request_id: requestId }),
+            use_ocr: useOcrValue,
+            parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue
           }),
         }
       );
@@ -293,7 +299,9 @@ export const CarbonProvider = ({
     showFilesTab,
     setRequestIds,
     requestIds,
-    useRequestIds
+    useRequestIds,
+    useOcr,
+    parsePdfTablesWithOcr
   };
 
   return (

@@ -56,7 +56,9 @@ export interface FileType {
   setPageAsBoundary?: boolean;
   useOcr?: boolean;
   generateSparseVectors?: boolean;
+  parsePdfTablesWithOcr?: boolean;
 }
+
 export interface BaseIntegration {
   id: IntegrationName;
   chunkSize?: number;
@@ -69,15 +71,18 @@ export interface BaseIntegration {
   syncFilesOnConnection?: boolean;
   setPageAsBoundary?: boolean;
   showFilesTab?: boolean;
+  useOcr?: boolean;
+  parsePdfTablesWithOcr?: boolean;
 }
+
 export interface LocalFilesIntegration extends BaseIntegration {
   maxFileSize: number;
   allowMultipleFiles: boolean;
   maxFilesCount?: number;
   allowedFileTypes?: FileType[];
   filePickerMode?: FilePickerMode;
-  useOcr?: boolean;
 }
+
 export interface WebScraperIntegration extends BaseIntegration {
   recursionDepth?: number;
   maxPagesToScrape?: number;
@@ -209,6 +214,8 @@ export interface CarbonConnectProps {
   setPageAsBoundary?: boolean;
   showFilesTab?: boolean;
   useRequestIds?: boolean;
+  useOcr?: boolean;
+  parsePdfTablesWithOcr?: boolean;
 }
 
 const CarbonConnect: React.FC<CarbonConnectProps> = ({
@@ -268,6 +275,8 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
   setPageAsBoundary = false,
   showFilesTab = true,
   useRequestIds = false,
+  useOcr = false,
+  parsePdfTablesWithOcr = false,
 }) => {
   const [activeStep, setActiveStep] = useState<string | number>(
     entryPoint === "LOCAL_FILES" || entryPoint === "WEB_SCRAPER"
@@ -316,6 +325,8 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       useRequestIds={useRequestIds}
       requestIds={requestIds}
       setRequestIds={setRequestIds}
+      useOcr={useOcr}
+      parsePdfTablesWithOcr={parsePdfTablesWithOcr}
     >
       <IntegrationModal
         orgName={orgName}

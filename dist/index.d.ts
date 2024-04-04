@@ -44,6 +44,7 @@ export interface FileType {
     setPageAsBoundary?: boolean;
     useOcr?: boolean;
     generateSparseVectors?: boolean;
+    parsePdfTablesWithOcr?: boolean;
 }
 export interface BaseIntegration {
     id: IntegrationName;
@@ -57,6 +58,8 @@ export interface BaseIntegration {
     syncFilesOnConnection?: boolean;
     setPageAsBoundary?: boolean;
     showFilesTab?: boolean;
+    useOcr?: boolean;
+    parsePdfTablesWithOcr?: boolean;
 }
 export interface LocalFilesIntegration extends BaseIntegration {
     maxFileSize: number;
@@ -64,7 +67,6 @@ export interface LocalFilesIntegration extends BaseIntegration {
     maxFilesCount?: number;
     allowedFileTypes?: FileType[];
     filePickerMode?: FilePickerMode;
-    useOcr?: boolean;
 }
 export interface WebScraperIntegration extends BaseIntegration {
     recursionDepth?: number;
@@ -183,6 +185,8 @@ export interface CarbonConnectProps {
     setPageAsBoundary?: boolean;
     showFilesTab?: boolean;
     useRequestIds?: boolean;
+    useOcr?: boolean;
+    parsePdfTablesWithOcr?: boolean;
 }
 declare const CarbonConnect: React.FC<CarbonConnectProps>;
 export { CarbonConnect };

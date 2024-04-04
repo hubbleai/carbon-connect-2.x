@@ -103,7 +103,9 @@ function FileUpload({ setActiveStep }) {
     embeddingModel,
     generateSparseVectors,
     prependFilenameToChunks,
-    maxItemsPerChunk
+    maxItemsPerChunk,
+    useOcr,
+    parsePdfTablesWithOcr
   } = useCarbon();
 
   useEffect(() => {
@@ -246,8 +248,8 @@ function FileUpload({ setActiveStep }) {
             formData.append('file', file);
 
             const setPageAsBoundary =
-              fileTypeConfig?.setPageAsBoundary ??
-              filesConfig?.setPageAsBoundary ??
+              fileTypeConfig?.setPageAsBoundary ||
+              filesConfig?.setPageAsBoundary ||
               false;
             const chunkSize =
               fileTypeConfig?.chunkSize ||
@@ -261,8 +263,8 @@ function FileUpload({ setActiveStep }) {
               defaultOverlapSize;
 
             const skipEmbeddingGeneration =
-              fileTypeConfig?.skipEmbeddingGeneration ??
-              filesConfig?.skipEmbeddingGeneration ??
+              fileTypeConfig?.skipEmbeddingGeneration ||
+              filesConfig?.skipEmbeddingGeneration ||
               false;
 
             const embeddingModelValue =
@@ -272,18 +274,24 @@ function FileUpload({ setActiveStep }) {
               null;
 
             const useOCR =
-              fileTypeConfig?.useOcr ?? filesConfig?.useOcr ?? false;
+              fileTypeConfig?.useOcr || filesConfig?.useOcr || useOcr || false;
+
+            const parsePdfTablesWithOcr =
+              filesConfig?.parsePdfTablesWithOcr
+              || fileTypeConfig?.parsePdfTablesWithOcr
+              || parsePdfTablesWithOcr
+              || false
 
             const generateSparseVectorsValue =
-              fileTypeConfig?.generateSparseVectors ??
-              filesConfig?.generateSparseVectors ??
-              generateSparseVectors ??
+              fileTypeConfig?.generateSparseVectors ||
+              filesConfig?.generateSparseVectors ||
+              generateSparseVectors ||
               false;
 
             const prependFilenameToChunksValue =
-              fileTypeConfig?.prependFilenameToChunks ??
-              filesConfig?.prependFilenameToChunks ??
-              prependFilenameToChunks ??
+              fileTypeConfig?.prependFilenameToChunks ||
+              filesConfig?.prependFilenameToChunks ||
+              prependFilenameToChunks ||
               false;
 
             const maxItemsPerChunkValue =
@@ -305,6 +313,7 @@ function FileUpload({ setActiveStep }) {
             );
             apiUrl.searchParams.append("embedding_model", embeddingModelValue);
             apiUrl.searchParams.append("use_ocr", useOCR.toString());
+            apiUrl.searchParams.append("parse_pdf_tables_with_ocr", parsePdfTablesWithOcr.toString())
             apiUrl.searchParams.append(
               "generate_sparse_vectors",
               generateSparseVectorsValue.toString()

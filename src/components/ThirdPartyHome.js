@@ -65,7 +65,9 @@ const ThirdPartyHome = ({
     showFilesTab,
     requestIds,
     useRequestIds,
-    setRequestIds
+    setRequestIds,
+    useOcr,
+    parsePdfTablesWithOcr
   } = useCarbon();
 
   const [service, setService] = useState(null);
@@ -417,6 +419,8 @@ const ThirdPartyHome = ({
         service?.maxItemsPerChunk || maxItemsPerChunk || null;
       const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false
+      const useOcrValue = service?.useOcr || useOcr || false;
+      const parsePdfTablesWithOcrValue = service?.parsePdfTablesWithOcr || parsePdfTablesWithOcr || false;
 
       let requestId = null
       if (useRequestIds) {
@@ -447,7 +451,9 @@ const ThirdPartyHome = ({
             connecting_new_account: mode == "CONNECT" ? true : false,
             ...(dataSourceId && { data_source_id: dataSourceId }),
             ...extraParams,
-            ...(requestId && { request_id: requestId })
+            ...(requestId && { request_id: requestId }),
+            use_ocr: useOcrValue,
+            parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue
           }),
         }
       );
