@@ -202,6 +202,7 @@ function FileUpload({ setActiveStep }) {
       return newList;
     });
   };
+  console.log()
 
   const uploadSelectedFiles = async () => {
     if (files.length === 0) {
@@ -218,21 +219,25 @@ function FileUpload({ setActiveStep }) {
         files.map(async (file, index) => {
           try {
             const fileType = file.name.split('.').pop();
-            const allowedFileTypes = filesConfig.allowedFileTypes
+            const allowedFileExtensions = filesConfig.allowedFileTypes
               ? filesConfig.allowedFileTypes.map((config) => config.extension)
               : defaultSupportedFileTypes;
 
-            const fileTypeConfig = allowedFileTypes.find(
+            const isExtensionAllowed = allowedFileExtensions.find(
               (configuredType) => configuredType === fileType
             );
 
-            if (!fileTypeConfig) {
+            if (!isExtensionAllowed) {
               // failedUploads.push({
               //   name: file.name,
               //   message: 'Unsupported Format',
               // });
               return;
             }
+            const allowedFileTypes = filesConfig?.allowedFileTypes || []
+            const fileTypeConfigValue = allowedFileTypes.find(
+              (type) => type && type.extension == fileType
+            )
 
             const fileSize = file.size / 1000000;
 
@@ -248,54 +253,54 @@ function FileUpload({ setActiveStep }) {
             formData.append('file', file);
 
             const setPageAsBoundary =
-              fileTypeConfig?.setPageAsBoundary ||
+              fileTypeConfigValue?.setPageAsBoundary ||
               filesConfig?.setPageAsBoundary ||
               false;
             const chunkSize =
-              fileTypeConfig?.chunkSize ||
+              fileTypeConfigValue?.chunkSize ||
               filesConfig?.chunkSize ||
               topLevelChunkSize ||
               defaultChunkSize;
             const overlapSize =
-              fileTypeConfig?.overlapSize ||
+              fileTypeConfigValue?.overlapSize ||
               filesConfig?.overlapSize ||
               topLevelOverlapSize ||
               defaultOverlapSize;
 
             const skipEmbeddingGeneration =
-              fileTypeConfig?.skipEmbeddingGeneration ||
+              fileTypeConfigValue?.skipEmbeddingGeneration ||
               filesConfig?.skipEmbeddingGeneration ||
               false;
 
             const embeddingModelValue =
-              fileTypeConfig?.embeddingModel ||
+              fileTypeConfigValue?.embeddingModel ||
               filesConfig?.embeddingModel ||
               embeddingModel ||
               null;
 
-            const useOCR =
-              fileTypeConfig?.useOcr || filesConfig?.useOcr || useOcr || false;
+            const useOCRValue =
+              fileTypeConfigValue?.useOcr || filesConfig?.useOcr || useOcr || false;
 
             const parsePdfTablesWithOcr =
               filesConfig?.parsePdfTablesWithOcr
-              || fileTypeConfig?.parsePdfTablesWithOcr
+              || fileTypeConfigValue?.parsePdfTablesWithOcr
               || parsePdfTablesWithOcr
               || false
 
             const generateSparseVectorsValue =
-              fileTypeConfig?.generateSparseVectors ||
+              fileTypeConfigValue?.generateSparseVectors ||
               filesConfig?.generateSparseVectors ||
               generateSparseVectors ||
               false;
 
             const prependFilenameToChunksValue =
-              fileTypeConfig?.prependFilenameToChunks ||
+              fileTypeConfigValue?.prependFilenameToChunks ||
               filesConfig?.prependFilenameToChunks ||
               prependFilenameToChunks ||
               false;
 
             const maxItemsPerChunkValue =
-              fileTypeConfig?.maxItemsPerChunk ||
+              fileTypeConfigValue?.maxItemsPerChunk ||
               filesConfig?.maxItemsPerChunk ||
               maxItemsPerChunk ||
               undefined;
@@ -312,7 +317,7 @@ function FileUpload({ setActiveStep }) {
               skipEmbeddingGeneration.toString()
             );
             apiUrl.searchParams.append("embedding_model", embeddingModelValue);
-            apiUrl.searchParams.append("use_ocr", useOCR.toString());
+            apiUrl.searchParams.append("use_ocr", useOCRValue.toString());
             apiUrl.searchParams.append("parse_pdf_tables_with_ocr", parsePdfTablesWithOcr.toString())
             apiUrl.searchParams.append(
               "generate_sparse_vectors",
