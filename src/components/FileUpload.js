@@ -202,7 +202,6 @@ function FileUpload({ setActiveStep }) {
       return newList;
     });
   };
-  console.log()
 
   const uploadSelectedFiles = async () => {
     if (files.length === 0) {
