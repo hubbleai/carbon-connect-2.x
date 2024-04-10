@@ -27,7 +27,7 @@ import {
   BsMarkdownFill,
 } from 'react-icons/bs';
 
-const FileSelector = ({ account, searchQuery, files }) => {
+const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
   const {
     accessToken,
     processedIntegrations,
@@ -130,9 +130,9 @@ const FileSelector = ({ account, searchQuery, files }) => {
       setParentId(lastPwd.parentId);
       if (hasMoreFiles && shouldFetch) {
         fetchUserFilesMetaData(lastPwd.id, lastPwd.offset);
-      } else {
-        updateFileSelectorViewData();
       }
+
+      updateFileSelectorViewData();
     }
   }, [pwd]);
 
@@ -147,7 +147,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
     ]);
     setSelectedFilesList([]);
     setShouldFetch(true);
-  }, [account]);
+  }, [account, filePickerRefreshes]);
 
   // Once the files data is fetched, we set the active files list to the master list.
   // We will also set the active files list to the selected folder's list using the master file data and parent id.

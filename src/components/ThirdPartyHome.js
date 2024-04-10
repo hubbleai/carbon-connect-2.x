@@ -77,6 +77,8 @@ const ThirdPartyHome = ({
   const [connected, setConnected] = useState([]);
   const [selectedDataSource, setSelectedDataSource] = useState(null);
   const [showFileSelector, setShowFileSelector] = useState(false);
+  const [isResyncingDataSource, setIsResyncingDataSource] = useState(false);
+  const [filePickerRefreshes, setFilePickerRefreshes] = useState(0);
 
   const shouldShowFilesTab = showFilesTab || integrationData?.showFilesTab;
 
@@ -167,12 +169,12 @@ const ThirdPartyHome = ({
     }
   }, [selectedDataSource?.id, showFileSelector]);
 
-  const loadMoreRows = async () => {
+  const loadMoreRows = async (overrideOffset = null) => {
     if (!shouldShowFilesTab) return
     const userFilesResponse = await getUserFiles({
       accessToken: accessToken,
       environment: environment,
-      offset: offset,
+      offset: overrideOffset ?? offset,
       filters: {
         organization_user_data_source_id: [selectedDataSource.id],
       },
@@ -335,6 +337,32 @@ const ThirdPartyHome = ({
       toast.error('Error resyncing file');
       console.error('Error resyncing file: ', resyncFileResponse.error);
     }
+  };
+
+  const resyncDataSource = async () => {
+    setIsResyncingDataSource(true);
+    const requestBody = {
+      data_source_id: selectedDataSource.id,
+    };
+
+    const resyncDataSourceResponse = await authenticatedFetch(
+      `${BASE_URL[environment]}/integrations/items/sync`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    if (resyncDataSourceResponse.status === 200) {
+      toast.success('Fetching files');
+    } else {
+      toast.error('Error fetching files');
+    }
+    setIsResyncingDataSource(false);
   };
 
   const handleDeleteFile = async (rowData) => {
@@ -532,6 +560,16 @@ const ThirdPartyHome = ({
     }
   }
 
+  const handleRefreshList = async () => {
+    if (showFileSelector) {
+      setFilePickerRefreshes(prev => prev + 1)
+    } else {
+      setOffset(0)
+      setFilesLoading(true)
+      loadMoreRows(0).then(() => setFilesLoading(false));
+    }
+  }
+
   const dataSourceDomain = selectedDataSource ? getDataSourceDomain(selectedDataSource) : null
   const dataSourceEmail = selectedDataSource ? getDataSourceEmail(selectedDataSource) : null
   const shouldShowUploadIcon = syncUrlBasedConnectors.includes(integrationName) || filePickerBasedConnectors.includes(integrationName)
@@ -714,21 +752,27 @@ const ThirdPartyHome = ({
                   </label>
 
                   {/* Switcher */}
-                  <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
-                    <button
-                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-text-black${!showFileSelector && ' cc-bg-gray-300'}`}
-                      onClick={() => setShowFileSelector(false)}
-                    >
-                      <CiCircleList className="cc-w-4 cc-h-4" />
-                    </button>
-                    {shouldShowUploadIcon ? <button
-                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md${showFileSelector && ' cc-bg-gray-300'}`}
-                      onClick={() => {
-                        handleUploadFilesClick()
-                      }}
-                    >
-                      <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
-                    </button> : null}
+                  <div className="cc-flex cc-space-x-4">
+                    {<VscSync
+                      onClick={() => handleRefreshList()}
+                      className={`cc-cursor-pointer cc-text-gray-500 cc-mt-0.5 cc-h-6 cc-w-6`}
+                    />}
+                    <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
+                      <button
+                        className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-text-black${!showFileSelector && ' cc-bg-gray-300'}`}
+                        onClick={() => setShowFileSelector(false)}
+                      >
+                        <CiCircleList className="cc-w-4 cc-h-4" />
+                      </button>
+                      {shouldShowUploadIcon ? <button
+                        className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md${showFileSelector && ' cc-bg-gray-300'}`}
+                        onClick={() => {
+                          handleUploadFilesClick()
+                        }}
+                      >
+                        <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
+                      </button> : null}
+                    </div>
                   </div>
                 </div>
 
@@ -744,7 +788,7 @@ const ThirdPartyHome = ({
                   <FileSelector
                     account={selectedDataSource}
                     searchQuery={searchQuery}
-                    files={files}
+                    filePickerRefreshes={filePickerRefreshes}
                   />
                 ) : filesLoading ? (
                   <div className="cc-self-center">
@@ -865,6 +909,12 @@ const ThirdPartyHome = ({
                 {!shouldShowFilesTab && shouldShowUploadIcon ? <button className="cc-cursor-pointer" onClick={() => {
                   handleUploadFilesClick()
                 }}><MdOutlineCloudUpload size={"1.75em"} /></button> : null}
+
+                {shouldShowFilesTab && <VscSync
+                  onClick={() => !isResyncingDataSource && resyncDataSource()}
+                  className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${isResyncingDataSource ? 'animate-spin' : ''
+                    }`}
+                />}
 
                 <button
                   className="cc-text-red-600 cc-bg-red-200 cc-px-4 cc-py-2 cc-font-semibold cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
