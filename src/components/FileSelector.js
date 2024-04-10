@@ -128,19 +128,11 @@ const FileSelector = ({ account, searchQuery, files }) => {
       setOffset(lastPwd.offset);
       setHasMoreFiles(lastPwd.hasMoreFiles);
       setParentId(lastPwd.parentId);
-
       if (hasMoreFiles && shouldFetch) {
-        const updateLoader = activeFilesList.length === 0;
-        if (updateLoader) {
-          setIsLoading(true);
-        }
         fetchUserFilesMetaData(lastPwd.id, lastPwd.offset);
-        if (updateLoader) {
-          setIsLoading(false);
-        }
+      } else {
+        updateFileSelectorViewData();
       }
-
-      updateFileSelectorViewData();
     }
   }, [pwd]);
 
@@ -189,6 +181,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
   // File sync related
   const fetchUserFilesMetaData = async (parentId = null, offset = 0) => {
+    setIsLoading(true)
     const requestBody = {
       data_source_id: account?.id,
       pagination: {
@@ -233,6 +226,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
         offset
       );
     }
+    setIsLoading(false)
   };
 
   const updateFileSelectorViewData = (
@@ -275,7 +269,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
             );
 
             if (offset === 0)
-              currentLevel[folderIndex].children = [...newChildren];
+              currentLevel[folderIndex].children = [...userFiles];
             else
               currentLevel[folderIndex].children = [
                 ...currentLevel[folderIndex].children,
@@ -577,17 +571,15 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
         <div className="cc-flex cc-flex-row cc-space-x-2">
           <button
-            className={`cc-justify-end ${
-              selectedFilesList == 0 ? 'cc-hidden' : ''
-            } cc-flex cc-items-center cc-space-x-2 cc-text-xs cc-font-semibold cc-text-blue-500 cc-py-1 cc-px-2 cc-rounded-full cc-border cc-border-blue-500 cc-bg-blue-50 cc-transition cc-duration-150 cc-ease-in-out hover:cc-bg-blue-100`}
+            className={`cc-justify-end ${selectedFilesList == 0 ? 'cc-hidden' : ''
+              } cc-flex cc-items-center cc-space-x-2 cc-text-xs cc-font-semibold cc-text-blue-500 cc-py-1 cc-px-2 cc-rounded-full cc-border cc-border-blue-500 cc-bg-blue-50 cc-transition cc-duration-150 cc-ease-in-out hover:cc-bg-blue-100`}
             onClick={syncSelectedFiles}
           >
             Sync {selectedFilesList.length} Files
           </button>
           <button
-            className={`cc-justify-end ${
-              selectedFilesList == 0 ? 'cc-hidden' : ''
-            } cc-flex cc-items-center cc-space-x-2 cc-text-xs cc-font-semibold cc-text-red-500 cc-py-1 cc-px-2 cc-rounded-full cc-border cc-border-red-500 cc-bg-red-50 cc-transition cc-duration-150 cc-ease-in-out hover:cc-bg-red-100`}
+            className={`cc-justify-end ${selectedFilesList == 0 ? 'cc-hidden' : ''
+              } cc-flex cc-items-center cc-space-x-2 cc-text-xs cc-font-semibold cc-text-red-500 cc-py-1 cc-px-2 cc-rounded-full cc-border cc-border-red-500 cc-bg-red-50 cc-transition cc-duration-150 cc-ease-in-out hover:cc-bg-red-100`}
             onClick={() => setSelectedFilesList([])}
           >
             Clear Selection
@@ -601,7 +593,11 @@ const FileSelector = ({ account, searchQuery, files }) => {
         </div>
       ) :  */}
 
-      {activeFilesList.length === 0 ? (
+      {isLoading ? (
+        <div className="cc-flex cc-flex-col cc-grow cc-items-center cc-justify-center">
+          <div className="cc-spinner cc-w-10 cc-h-10 cc-border-2 cc-border-t-4 cc-border-gray-200 cc-rounded-full cc-animate-spin"></div>
+        </div>
+      ) : activeFilesList.length === 0 ? (
         <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-h-full">
           <h1 className="cc-text-lg cc-font-medium cc-text-gray-500">
             No files found!

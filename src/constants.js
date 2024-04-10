@@ -41,7 +41,6 @@ export const THIRD_PARTY_CONNECTORS = [
 // used to check if we need to generate sync/OAuth URL for syncing files
 export const SYNC_URL_BASED_CONNECTORS = [
   'BOX',
-  'CONFLUENCE',
   'DROPBOX',
   'GOOGLE_DRIVE',
   'INTERCOM',
@@ -50,5 +49,8 @@ export const SYNC_URL_BASED_CONNECTORS = [
   'SHAREPOINT',
   'ZENDESK',
   'ZOTERO',
-  'SALESFORCE'
 ]
+
+export const FILE_PICKER_BASED_CONNECTORS = []
+
+export const PICKER_OR_URL_BASED_CONNECTORS = ['CONFLUENCE', 'SALESFORCE']
