@@ -137,7 +137,7 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
   }, [pwd]);
 
   useEffect(() => {
-    if (!account) return;
+    if (!account || account?.sync_status !== 'READY') return;
 
     setFilesMasterList([]);
     setHasMoreFiles(true);
@@ -147,7 +147,7 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
     ]);
     setSelectedFilesList([]);
     setShouldFetch(true);
-  }, [account, filePickerRefreshes]);
+  }, [account?.id, account?.source_items_synced_at, filePickerRefreshes]);
 
   // Once the files data is fetched, we set the active files list to the master list.
   // We will also set the active files list to the selected folder's list using the master file data and parent id.
@@ -593,7 +593,11 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
         </div>
       ) :  */}
 
-      {isLoading ? (
+      {account?.sync_status == 'SYNCING' || account?.sync_status == 'QUEUED_FOR_SYNC' ? (
+        <div className="cc-flex cc-flex-col cc-grow cc-items-center cc-justify-center">
+          Your content is being synced.
+        </div>
+      ) : isLoading ? (
         <div className="cc-flex cc-flex-col cc-grow cc-items-center cc-justify-center">
           <div className="cc-spinner cc-w-10 cc-h-10 cc-border-2 cc-border-t-4 cc-border-gray-200 cc-rounded-full cc-animate-spin"></div>
         </div>

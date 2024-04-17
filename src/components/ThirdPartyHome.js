@@ -28,8 +28,9 @@ import { CiCircleList } from 'react-icons/ci';
 import 'react-virtualized/styles.css'; // import styles
 import resyncIcon from '../logos/resyncIcon.svg';
 import deleteIcon from '../logos/delete-button.svg';
-import { MdOutlineCloudUpload } from "react-icons/md";
+import { MdOutlineCloudUpload, MdRefresh } from "react-icons/md";
 import FileSelector from './FileSelector';
+import { TOOLTIP_THEME } from '../themes/flowbite'
 
 import ZendeskScreen from './ZendeskScreen';
 import ConfluenceScreen from './ConfluenceScreen';
@@ -40,6 +41,7 @@ import FreshdeskScreen from "./FreshdeskScreen";
 import GitbookScreen from "./GitbookScreen";
 import SalesforceScreen from "./SalesforceScreen";
 import { generateRequestId, getDataSourceDomain, getDataSourceEmail } from "../utils/helpers";
+import { Tooltip } from "flowbite-react";
 
 const ThirdPartyHome = ({
   integrationName,
@@ -139,7 +141,11 @@ const ThirdPartyHome = ({
       (integration) => integration.data_source_type === integrationName
     );
     setConnected(connected);
-    if (selectedDataSource === null && connected.length) {
+    if (
+      (selectedDataSource === null && connected.length) ||
+      (connected?.source_items_synced_at !== selectedDataSource?.source_items_synced_at) ||
+      (connected?.sync_status !== selectedDataSource?.sync_status)
+    ) {
       if (connected.length === 1) {
         setSelectedDataSource(connected[0]);
       } else {
@@ -148,7 +154,7 @@ const ThirdPartyHome = ({
       }
     }
     setIsLoading(false)
-  }, [activeIntegrations.map(i => i.id).join(",")]);
+  }, [activeIntegrations.map(i => i.id + i?.source_items_synced_at + i?.sync_status).join(",")]);
 
   useEffect(() => {
     if (!files.length) return;
@@ -358,9 +364,9 @@ const ThirdPartyHome = ({
     );
 
     if (resyncDataSourceResponse.status === 200) {
-      toast.success('Fetching files');
+      toast.success('Your connection is being synced');
     } else {
-      toast.error('Error fetching files');
+      toast.error('Error resyncing connection');
     }
     setIsResyncingDataSource(false);
   };
@@ -737,9 +743,9 @@ const ThirdPartyHome = ({
                 {/* Common Action Bar */}
                 <div className="cc-flex cc-flex-row cc-h-6 cc-items-center cc-space-x-2 cc-w-full cc-px-2 cc-my-2 cc-justify-between">
                   {/* Search Input */}
-                  <label class="relative block cc-w-64  cc-flex cc-flex-row">
+                  <label class="cc-relative cc-block cc-w-64  cc-flex cc-flex-row">
                     {/* <span class="sr-only">Search</span> */}
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                    <span class="cc-absolute cc-inset-y-0 cc-left-0 cc-flex cc-items-center cc-pl-2">
                       <HiSearch className="cc-w-4 cc-h-4" />
                     </span>
                     <input
@@ -753,25 +759,34 @@ const ThirdPartyHome = ({
 
                   {/* Switcher */}
                   <div className="cc-flex cc-space-x-4">
-                    {<VscSync
-                      onClick={() => handleRefreshList()}
-                      className={`cc-cursor-pointer cc-text-gray-500 cc-mt-0.5 cc-h-6 cc-w-6`}
-                    />}
+                    {<Tooltip content="Refresh List" arrow={false} style="light" theme={TOOLTIP_THEME}>
+                      <MdRefresh
+                        onClick={() => handleRefreshList()}
+                        className={`cc-cursor-pointer cc-text-gray-500 cc-mt-0.5 cc-h-6 cc-w-6`}
+                        data-tooltip-target="tooltip-default"
+                      />
+                    </Tooltip>}
                     <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
-                      <button
-                        className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-text-black${!showFileSelector && ' cc-bg-gray-300'}`}
-                        onClick={() => setShowFileSelector(false)}
-                      >
-                        <CiCircleList className="cc-w-4 cc-h-4" />
-                      </button>
-                      {shouldShowUploadIcon ? <button
-                        className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md${showFileSelector && ' cc-bg-gray-300'}`}
-                        onClick={() => {
-                          handleUploadFilesClick()
-                        }}
-                      >
-                        <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
-                      </button> : null}
+                      <Tooltip content="View Files" arrow={false} style="light" theme={TOOLTIP_THEME}>
+                        <button
+                          className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-text-black${!showFileSelector && ' cc-bg-gray-300'}`}
+                          onClick={() => setShowFileSelector(false)}
+                        >
+                          <CiCircleList className="cc-w-4 cc-h-4" />
+                        </button>
+                      </Tooltip>
+                      {shouldShowUploadIcon ?
+                        <Tooltip content="Upload Files" arrow={false} style="light" theme={TOOLTIP_THEME}>
+                          <button
+                            className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md${showFileSelector && ' cc-bg-gray-300'}`}
+                            onClick={() => {
+                              handleUploadFilesClick()
+                            }}
+                          >
+                            <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
+                          </button>
+                        </Tooltip>
+                        : null}
                     </div>
                   </div>
                 </div>
@@ -910,11 +925,14 @@ const ThirdPartyHome = ({
                   handleUploadFilesClick()
                 }}><MdOutlineCloudUpload size={"1.75em"} /></button> : null}
 
-                {shouldShowFilesTab && <VscSync
-                  onClick={() => !isResyncingDataSource && resyncDataSource()}
-                  className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${isResyncingDataSource ? 'animate-spin' : ''
-                    }`}
-                />}
+                {shouldShowFilesTab &&
+                  <Tooltip content="Resync Connection" arrow={false} style="light" theme={TOOLTIP_THEME}>
+                    <VscSync
+                      onClick={() => !isResyncingDataSource && resyncDataSource()}
+                      className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${isResyncingDataSource ? 'animate-spin' : ''
+                        }`}
+                    />
+                  </Tooltip>}
 
                 <button
                   className="cc-text-red-600 cc-bg-red-200 cc-px-4 cc-py-2 cc-font-semibold cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
@@ -1037,6 +1055,7 @@ const ThirdPartyHome = ({
           </div>
         )}
       </div>
+      <script src="../path/to/flowbite/dist/flowbite.min.js"></script>
     </div>
   );
 };
