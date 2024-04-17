@@ -81,6 +81,7 @@ const ThirdPartyHome = ({
   const [showFileSelector, setShowFileSelector] = useState(false);
   const [isResyncingDataSource, setIsResyncingDataSource] = useState(false);
   const [filePickerRefreshes, setFilePickerRefreshes] = useState(0);
+  const [filesTabRefreshes, setFilesTabRefreshes] = useState(0);
 
   const shouldShowFilesTab = showFilesTab || integrationData?.showFilesTab;
 
@@ -167,20 +168,21 @@ const ThirdPartyHome = ({
 
   useEffect(() => {
     if (selectedDataSource?.id && !showFileSelector) {
+      setOffset(0)
       setFiles([])
       setSortedFiles([])
       setFilteredFiles([])
       setFilesLoading(true)
       loadMoreRows().then(() => setFilesLoading(false));
     }
-  }, [selectedDataSource?.id, showFileSelector]);
+  }, [selectedDataSource?.id, showFileSelector, filesTabRefreshes]);
 
-  const loadMoreRows = async (overrideOffset = null) => {
+  const loadMoreRows = async () => {
     if (!shouldShowFilesTab) return
     const userFilesResponse = await getUserFiles({
       accessToken: accessToken,
       environment: environment,
-      offset: overrideOffset ?? offset,
+      offset: offset,
       filters: {
         organization_user_data_source_id: [selectedDataSource.id],
       },
@@ -570,9 +572,7 @@ const ThirdPartyHome = ({
     if (showFileSelector) {
       setFilePickerRefreshes(prev => prev + 1)
     } else {
-      setOffset(0)
-      setFilesLoading(true)
-      loadMoreRows(0).then(() => setFilesLoading(false));
+      setFilesTabRefreshes(prev => prev + 1)
     }
   }
 

@@ -650,7 +650,7 @@ function FileUpload({ setActiveStep }) {
                                     } here.`}
                                 </p>
                                 <p className="cc-text-[#919191]">
-                                  Max {allowedMaxFileSize} MB per file
+                                  {allowedMaxFileSize < 1000 ? `Max ${allowedMaxFileSize} MB per file` : `Max ${allowedMaxFileSize / 1000} GB per file`}
                                 </p>
                               </div>
                             </div>
@@ -668,7 +668,7 @@ function FileUpload({ setActiveStep }) {
                                 } files`}
                             </p>
                             <p className="cc-text-[#919191]">
-                              Max {allowedMaxFileSize} MB per file
+                              {allowedMaxFileSize < 1000 ? `Max ${allowedMaxFileSize} MB per file` : `Max ${allowedMaxFileSize / 1000} GB per file`}
                             </p>
                           </div>
                         </button>
