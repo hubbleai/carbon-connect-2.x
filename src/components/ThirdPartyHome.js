@@ -21,14 +21,16 @@ import {
   resyncFile,
   deleteFiles
 } from 'carbon-connect-js';
-import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT, SYNC_URL_BASED_CONNECTORS, TWO_STEP_CONNECTORS } from '../constants';
+import { BASE_URL, FILE_PICKER_BASED_CONNECTORS, onSuccessEvents, PICKER_OR_URL_BASED_CONNECTORS, SYNC_FILES_ON_CONNECT, SYNC_URL_BASED_CONNECTORS, TWO_STEP_CONNECTORS } from '../constants';
 import { VscDebugDisconnect, VscLoading, VscSync } from 'react-icons/vsc';
 import { IoCloudUploadOutline } from 'react-icons/io5';
 import { CiCircleList } from 'react-icons/ci';
 import 'react-virtualized/styles.css'; // import styles
 import resyncIcon from '../logos/resyncIcon.svg';
 import deleteIcon from '../logos/delete-button.svg';
-import { MdOutlineCloudUpload } from "react-icons/md";
+import { MdOutlineCloudUpload, MdRefresh } from "react-icons/md";
+import FileSelector from './FileSelector';
+import { TOOLTIP_THEME } from '../themes/flowbite'
 
 import ZendeskScreen from './ZendeskScreen';
 import ConfluenceScreen from './ConfluenceScreen';
@@ -39,6 +41,7 @@ import FreshdeskScreen from "./FreshdeskScreen";
 import GitbookScreen from "./GitbookScreen";
 import SalesforceScreen from "./SalesforceScreen";
 import { generateRequestId, getDataSourceDomain, getDataSourceEmail } from "../utils/helpers";
+import { Tooltip } from "flowbite-react";
 
 const ThirdPartyHome = ({
   integrationName,
@@ -67,13 +70,17 @@ const ThirdPartyHome = ({
     useRequestIds,
     setRequestIds,
     useOcr,
-    parsePdfTablesWithOcr
+    parsePdfTablesWithOcr,
+    syncFilesOnConnection
   } = useCarbon();
 
   const [service, setService] = useState(null);
   const [integrationData, setIntegrationData] = useState(null);
   const [connected, setConnected] = useState([]);
   const [selectedDataSource, setSelectedDataSource] = useState(null);
+  const [showFileSelector, setShowFileSelector] = useState(false);
+  const [isResyncingDataSource, setIsResyncingDataSource] = useState(false);
+  const [filePickerRefreshes, setFilePickerRefreshes] = useState(0);
 
   const shouldShowFilesTab = showFilesTab || integrationData?.showFilesTab;
 
@@ -81,6 +88,8 @@ const ThirdPartyHome = ({
   const [filesLoading, setFilesLoading] = useState(false)
   const [activeTab, setActiveTab] = useState(''); // ['files', 'config']
   const [isRevokingDataSource, setIsRevokingDataSource] = useState(false);
+  const [syncUrlBasedConnectors, setSyncUrlBasedConnectors] = useState(SYNC_URL_BASED_CONNECTORS)
+  const [filePickerBasedConnectors, setFilePickerBasedConnectors] = useState(FILE_PICKER_BASED_CONNECTORS)
 
   const [showAdditionalStep, setShowAdditionalStep] = useState(false);
   const [files, setFiles] = useState([]);
@@ -106,6 +115,17 @@ const ThirdPartyHome = ({
   }, [processedIntegrations]);
 
   useEffect(() => {
+    const syncFilesOnConnectionValue = service?.syncFilesOnConnection ?? syncFilesOnConnection
+    if (syncFilesOnConnectionValue) {
+      setSyncUrlBasedConnectors([...SYNC_URL_BASED_CONNECTORS, ...PICKER_OR_URL_BASED_CONNECTORS])
+      setFilePickerBasedConnectors(FILE_PICKER_BASED_CONNECTORS)
+    } else {
+      setFilePickerBasedConnectors([...FILE_PICKER_BASED_CONNECTORS, ...PICKER_OR_URL_BASED_CONNECTORS])
+      setSyncUrlBasedConnectors(SYNC_URL_BASED_CONNECTORS)
+    }
+  }, [service?.syncFilesOnConnection, syncFilesOnConnection])
+
+  useEffect(() => {
     setActiveTab(shouldShowFilesTab ? 'files' : 'config')
   }, [shouldShowFilesTab])
 
@@ -121,7 +141,11 @@ const ThirdPartyHome = ({
       (integration) => integration.data_source_type === integrationName
     );
     setConnected(connected);
-    if (selectedDataSource === null && connected.length) {
+    if (
+      (selectedDataSource === null && connected.length) ||
+      (connected?.source_items_synced_at !== selectedDataSource?.source_items_synced_at) ||
+      (connected?.sync_status !== selectedDataSource?.sync_status)
+    ) {
       if (connected.length === 1) {
         setSelectedDataSource(connected[0]);
       } else {
@@ -130,7 +154,7 @@ const ThirdPartyHome = ({
       }
     }
     setIsLoading(false)
-  }, [activeIntegrations.map(i => i.id).join(",")]);
+  }, [activeIntegrations.map(i => i.id + i?.source_items_synced_at + i?.sync_status).join(",")]);
 
   useEffect(() => {
     if (!files.length) return;
@@ -142,21 +166,21 @@ const ThirdPartyHome = ({
   }, [sortedFiles, searchQuery]);
 
   useEffect(() => {
-    if (selectedDataSource?.id) {
+    if (selectedDataSource?.id && !showFileSelector) {
       setFiles([])
       setSortedFiles([])
       setFilteredFiles([])
       setFilesLoading(true)
       loadMoreRows().then(() => setFilesLoading(false));
     }
-  }, [selectedDataSource?.id]);
+  }, [selectedDataSource?.id, showFileSelector]);
 
-  const loadMoreRows = async () => {
+  const loadMoreRows = async (overrideOffset = null) => {
     if (!shouldShowFilesTab) return
     const userFilesResponse = await getUserFiles({
       accessToken: accessToken,
       environment: environment,
-      offset: offset,
+      offset: overrideOffset ?? offset,
       filters: {
         organization_user_data_source_id: [selectedDataSource.id],
       },
@@ -321,6 +345,32 @@ const ThirdPartyHome = ({
     }
   };
 
+  const resyncDataSource = async () => {
+    setIsResyncingDataSource(true);
+    const requestBody = {
+      data_source_id: selectedDataSource.id,
+    };
+
+    const resyncDataSourceResponse = await authenticatedFetch(
+      `${BASE_URL[environment]}/integrations/items/sync`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    if (resyncDataSourceResponse.status === 200) {
+      toast.success('Your connection is being synced');
+    } else {
+      toast.error('Error resyncing connection');
+    }
+    setIsResyncingDataSource(false);
+  };
+
   const handleDeleteFile = async (rowData) => {
     const deleteFileResponse = await deleteFiles({
       accessToken: accessToken,
@@ -396,8 +446,6 @@ const ThirdPartyHome = ({
       await sendOauthRequest();
     }
   }
-
-  console.log(useRequestIds)
 
   const sendOauthRequest = async (mode = "CONNECT", dataSourceId = null, extraParams = {}) => {
     try {
@@ -493,7 +541,7 @@ const ThirdPartyHome = ({
   };
 
   const handleUploadFilesClick = () => {
-    if (SYNC_URL_BASED_CONNECTORS.includes(integrationName) && selectedDataSource) {
+    if (syncUrlBasedConnectors.includes(integrationName) && selectedDataSource) {
       const dataSourceType = selectedDataSource.data_source_type
       const extraParams = {}
       if (dataSourceType == "SALESFORCE") {
@@ -511,13 +559,26 @@ const ThirdPartyHome = ({
         }
       }
       sendOauthRequest("UPLOAD", selectedDataSource.id, extraParams)
+    } else if (filePickerBasedConnectors.includes(integrationName)) {
+      setShowFileSelector(!showFileSelector)
     } else {
       toast.error("Unable to start a file sync")
     }
   }
 
+  const handleRefreshList = async () => {
+    if (showFileSelector) {
+      setFilePickerRefreshes(prev => prev + 1)
+    } else {
+      setOffset(0)
+      setFilesLoading(true)
+      loadMoreRows(0).then(() => setFilesLoading(false));
+    }
+  }
+
   const dataSourceDomain = selectedDataSource ? getDataSourceDomain(selectedDataSource) : null
   const dataSourceEmail = selectedDataSource ? getDataSourceEmail(selectedDataSource) : null
+  const shouldShowUploadIcon = syncUrlBasedConnectors.includes(integrationName) || filePickerBasedConnectors.includes(integrationName)
 
   return (
     <div className="cc-h-full cc-w-full cc-flex cc-flex-col">
@@ -682,9 +743,9 @@ const ThirdPartyHome = ({
                 {/* Common Action Bar */}
                 <div className="cc-flex cc-flex-row cc-h-6 cc-items-center cc-space-x-2 cc-w-full cc-px-2 cc-my-2 cc-justify-between">
                   {/* Search Input */}
-                  <label class="relative block cc-w-64  cc-flex cc-flex-row">
+                  <label class="cc-relative cc-block cc-w-64  cc-flex cc-flex-row">
                     {/* <span class="sr-only">Search</span> */}
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                    <span class="cc-absolute cc-inset-y-0 cc-left-0 cc-flex cc-items-center cc-pl-2">
                       <HiSearch className="cc-w-4 cc-h-4" />
                     </span>
                     <input
@@ -697,31 +758,54 @@ const ThirdPartyHome = ({
                   </label>
 
                   {/* Switcher */}
-                  <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
-                    <button
-                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-bg-gray-300 cc-text-black`}
-                    >
-                      <CiCircleList className="cc-w-4 cc-h-4" />
-                    </button>
-                    {SYNC_URL_BASED_CONNECTORS.includes(integrationName) ? <button
-                      className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md`}
-                      onClick={() => {
-                        handleUploadFilesClick()
-                      }}
-                    >
-                      <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
-                    </button> : null}
+                  <div className="cc-flex cc-space-x-4">
+                    {<Tooltip content="Refresh List" arrow={false} style="light" theme={TOOLTIP_THEME}>
+                      <MdRefresh
+                        onClick={() => handleRefreshList()}
+                        className={`cc-cursor-pointer cc-text-gray-500 cc-mt-0.5 cc-h-6 cc-w-6`}
+                        data-tooltip-target="tooltip-default"
+                      />
+                    </Tooltip>}
+                    <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
+                      <Tooltip content="View Files" arrow={false} style="light" theme={TOOLTIP_THEME}>
+                        <button
+                          className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-text-black${!showFileSelector && ' cc-bg-gray-300'}`}
+                          onClick={() => setShowFileSelector(false)}
+                        >
+                          <CiCircleList className="cc-w-4 cc-h-4" />
+                        </button>
+                      </Tooltip>
+                      {shouldShowUploadIcon ?
+                        <Tooltip content="Upload Files" arrow={false} style="light" theme={TOOLTIP_THEME}>
+                          <button
+                            className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md${showFileSelector && ' cc-bg-gray-300'}`}
+                            onClick={() => {
+                              handleUploadFilesClick()
+                            }}
+                          >
+                            <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
+                          </button>
+                        </Tooltip>
+                        : null}
+                    </div>
                   </div>
                 </div>
 
-                {files.length === 0 && !filesLoading ? (
+                {files.length === 0 && !filesLoading && !showFileSelector ? (
                   <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-grow">
                     <p className="cc-text-gray-500 cc-text-sm">
                       No files synced
                     </p>
-                  </div>) : null}
+                  </div>) : null
+                }
 
-                {filesLoading ? (
+                {showFileSelector ? (
+                  <FileSelector
+                    account={selectedDataSource}
+                    searchQuery={searchQuery}
+                    filePickerRefreshes={filePickerRefreshes}
+                  />
+                ) : filesLoading ? (
                   <div className="cc-self-center">
                     <div role="status">
                       <svg aria-hidden="true" class="cc-w-8 cc-h-8 cc-text-gray-200 cc-animate-spin cc-dark:text-gray-600 cc-fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -837,9 +921,18 @@ const ThirdPartyHome = ({
                   {dataSourceDomain ? ` (${dataSourceDomain})` : null}
                 </p>
 
-                {!shouldShowFilesTab && SYNC_URL_BASED_CONNECTORS.includes(integrationName) ? <button className="cc-cursor-pointer" onClick={() => {
+                {!shouldShowFilesTab && shouldShowUploadIcon ? <button className="cc-cursor-pointer" onClick={() => {
                   handleUploadFilesClick()
                 }}><MdOutlineCloudUpload size={"1.75em"} /></button> : null}
+
+                {shouldShowFilesTab &&
+                  <Tooltip content="Resync Connection" arrow={false} style="light" theme={TOOLTIP_THEME}>
+                    <VscSync
+                      onClick={() => !isResyncingDataSource && resyncDataSource()}
+                      className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${isResyncingDataSource ? 'animate-spin' : ''
+                        }`}
+                    />
+                  </Tooltip>}
 
                 <button
                   className="cc-text-red-600 cc-bg-red-200 cc-px-4 cc-py-2 cc-font-semibold cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
