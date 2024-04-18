@@ -24,7 +24,8 @@ export declare enum IntegrationName {
     FRESHDESK = "FRESHDESK",
     GITBOOK = "GITBOOK",
     OUTLOOK = "OUTLOOK",
-    SALESFORCE = "SALESFORCE"
+    SALESFORCE = "SALESFORCE",
+    GITHUB = "GITHUB"
 }
 export declare enum SyncStatus {
     READY = "READY",

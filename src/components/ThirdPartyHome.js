@@ -42,6 +42,7 @@ import GitbookScreen from "./GitbookScreen";
 import SalesforceScreen from "./SalesforceScreen";
 import { generateRequestId, getDataSourceDomain, getDataSourceEmail } from "../utils/helpers";
 import { Tooltip } from "flowbite-react";
+import GithubScreen from "./GithubScreen";
 
 const ThirdPartyHome = ({
   integrationName,
@@ -1033,6 +1034,16 @@ const ThirdPartyHome = ({
                 )) ||
                 (integrationName == 'SALESFORCE' && (
                   <SalesforceScreen
+                    buttonColor={
+                      integrationData?.branding?.header?.primaryButtonColor
+                    }
+                    labelColor={
+                      integrationData?.branding?.header?.primaryLabelColor
+                    }
+                  />
+                )) ||
+                (integrationName == 'GITHUB' && (
+                  <GithubScreen
                     buttonColor={
                       integrationData?.branding?.header?.primaryButtonColor
                     }

@@ -491,9 +491,9 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
     }
 
     return (
-      <div className="cc-flex cc-items-center cc-space-x-2 cc-text-left cc-text-xs cc-font-normal cc-py-1 cc-capitalize cc-px-1">
+      <div className="cc-flex cc-items-center cc-space-x-2 cc-text-left cc-text-xs cc-font-normal cc-py-1 cc-px-1">
         <span className="cc-flex cc-items-center cc-space-x-2">{icon}</span>
-        <span>{fileNameWithoutExtension}</span>
+        <span>{fileName}</span>
       </div>
     );
   };
