@@ -101,6 +101,7 @@ const IntegrationModal = ({
           const requestId = requestIdsRef.current ?
             requestIdsRef.current[newIntegration.data_source_type] || null :
             null
+          const filesSynced = oldIntegration?.files_synced_at !== newIntegration?.files_synced_at
           const onSuccessObject = {
             status: 200,
             integration: newIntegration.data_source_type,
@@ -109,7 +110,8 @@ const IntegrationModal = ({
             data: {
               data_source_external_id: newIntegration.data_source_external_id,
               sync_status: newIntegration.sync_status,
-              request_id: requestId
+              request_id: requestId,
+              files_synced: filesSynced
             },
           };
           response.push(onSuccessObject);
