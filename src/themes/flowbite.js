@@ -1,3 +1,4 @@
+// not being used as of now
 export const TOOLTIP_THEME = {
     "target": "cc-w-fit",
     "animation": "cc-transition-opacity",

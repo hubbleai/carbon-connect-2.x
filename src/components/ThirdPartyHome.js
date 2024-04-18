@@ -30,7 +30,6 @@ import resyncIcon from '../logos/resyncIcon.svg';
 import deleteIcon from '../logos/delete-button.svg';
 import { MdOutlineCloudUpload, MdRefresh } from "react-icons/md";
 import FileSelector from './FileSelector';
-import { TOOLTIP_THEME } from '../themes/flowbite'
 
 import ZendeskScreen from './ZendeskScreen';
 import ConfluenceScreen from './ConfluenceScreen';
@@ -41,7 +40,6 @@ import FreshdeskScreen from "./FreshdeskScreen";
 import GitbookScreen from "./GitbookScreen";
 import SalesforceScreen from "./SalesforceScreen";
 import { generateRequestId, getDataSourceDomain, getDataSourceEmail } from "../utils/helpers";
-import { Tooltip } from "flowbite-react";
 
 const ThirdPartyHome = ({
   integrationName,
@@ -759,33 +757,26 @@ const ThirdPartyHome = ({
 
                   {/* Switcher */}
                   <div className="cc-flex cc-space-x-4">
-                    {<Tooltip content="Refresh List" arrow={false} style="light" theme={TOOLTIP_THEME}>
-                      <MdRefresh
-                        onClick={() => handleRefreshList()}
-                        className={`cc-cursor-pointer cc-text-gray-500 cc-mt-0.5 cc-h-6 cc-w-6`}
-                        data-tooltip-target="tooltip-default"
-                      />
-                    </Tooltip>}
+                    <MdRefresh
+                      onClick={() => handleRefreshList()}
+                      className={`cc-cursor-pointer cc-text-gray-500 cc-mt-0.5 cc-h-6 cc-w-6`}
+                    />
                     <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
-                      <Tooltip content="View Files" arrow={false} style="light" theme={TOOLTIP_THEME}>
-                        <button
-                          className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-text-black${!showFileSelector && ' cc-bg-gray-300'}`}
-                          onClick={() => setShowFileSelector(false)}
-                        >
-                          <CiCircleList className="cc-w-4 cc-h-4" />
-                        </button>
-                      </Tooltip>
+                      <button
+                        className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-text-black${!showFileSelector && ' cc-bg-gray-300'}`}
+                        onClick={() => setShowFileSelector(false)}
+                      >
+                        <CiCircleList className="cc-w-4 cc-h-4" />
+                      </button>
                       {shouldShowUploadIcon ?
-                        <Tooltip content="Upload Files" arrow={false} style="light" theme={TOOLTIP_THEME}>
-                          <button
-                            className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md${showFileSelector && ' cc-bg-gray-300'}`}
-                            onClick={() => {
-                              handleUploadFilesClick()
-                            }}
-                          >
-                            <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
-                          </button>
-                        </Tooltip>
+                        <button
+                          className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md${showFileSelector && ' cc-bg-gray-300'}`}
+                          onClick={() => {
+                            handleUploadFilesClick()
+                          }}
+                        >
+                          <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
+                        </button>
                         : null}
                     </div>
                   </div>
@@ -926,13 +917,12 @@ const ThirdPartyHome = ({
                 }}><MdOutlineCloudUpload size={"1.75em"} /></button> : null}
 
                 {shouldShowFilesTab &&
-                  <Tooltip content="Resync Connection" arrow={false} style="light" theme={TOOLTIP_THEME}>
-                    <VscSync
-                      onClick={() => !isResyncingDataSource && resyncDataSource()}
-                      className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${isResyncingDataSource ? 'animate-spin' : ''
-                        }`}
-                    />
-                  </Tooltip>}
+                  <VscSync
+                    onClick={() => !isResyncingDataSource && resyncDataSource()}
+                    className={`cc-cursor-pointer cc-text-gray-500 cc-h-6 cc-w-6 ${isResyncingDataSource ? 'animate-spin' : ''
+                      }`}
+                  />
+                }
 
                 <button
                   className="cc-text-red-600 cc-bg-red-200 cc-px-4 cc-py-2 cc-font-semibold cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"

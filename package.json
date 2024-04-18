@@ -58,7 +58,6 @@
   },
   "dependencies": {
     "carbon-connect-js": "^0.0.23",
-    "flowbite-react": "^0.8.0",
     "react-virtualized": "^9.22.0"
   }
 }
