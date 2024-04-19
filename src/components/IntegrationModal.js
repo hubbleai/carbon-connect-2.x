@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
+import { IoClose } from "react-icons/io5";
 import '../index.css';
 
 import { HiPlus } from 'react-icons/hi';
@@ -51,6 +52,7 @@ const IntegrationModal = ({
     alwaysOpen,
     showModal,
     manageModalOpenState,
+    setShowModal
   } = useCarbon();
 
   const findModifications = (newIntegrations, oldIntegrations) => {
@@ -206,6 +208,7 @@ const IntegrationModal = ({
         )}
       </Dialog.Trigger>
 
+
       <Dialog.Portal>
         <Dialog.Overlay
           className="cc-bg-blackA9 data-[state=open]:cc-animate-overlayShow cc-fixed cc-inset-0 cc-bg-black/30"
@@ -218,6 +221,22 @@ const IntegrationModal = ({
             }`}
           style={{ zIndex: zIndex }}
         >
+          {!alwaysOpen ? <Dialog.Close asChild style={{ zIndex: zIndex + 1 }}>
+            <button aria-label="Close" style={{
+              "font-family": "inherit",
+              "height": "25px",
+              "width": "25px",
+              "display": "inline-flex",
+              "align-items": "center",
+              "justify-content": "center",
+              "position": "absolute",
+              "top": "15px",
+              "right": "15px",
+              "cursor": "pointer"
+            }}>
+              <IoClose />
+            </button>
+          </Dialog.Close> : null}
           {activeStep === 0 && (
             <CarbonAnnouncement
               setActiveStep={setActiveStep}

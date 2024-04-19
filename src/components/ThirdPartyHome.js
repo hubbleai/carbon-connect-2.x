@@ -588,7 +588,7 @@ const ThirdPartyHome = ({
             '#F5F5F5',
         }}
       >
-        <div className="cc-flex cc-flex-row cc-items-center cc-space-x-4 cc-w-full ">
+        <div className="cc-flex cc-flex-row cc-items-center cc-space-x-4 cc-space-y-4 cc-w-full ">
           <div className="cc-flex cc-flex-row cc-items-center cc-space-x-4">
             <HiArrowLeft
               onClick={() => {
