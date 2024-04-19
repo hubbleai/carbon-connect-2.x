@@ -34,6 +34,7 @@ export enum IntegrationName {
   GITBOOK = "GITBOOK",
   OUTLOOK = "OUTLOOK",
   SALESFORCE = "SALESFORCE",
+  GITHUB = "GITHUB",
 }
 
 export enum SyncStatus {

@@ -32,6 +32,7 @@ import S3Logo from '../logos/s3.svg';
 import FreshdeskLogo from '../logos/freshdesk.svg';
 import GmailLogo from '../logos/gmail.svg';
 import GitbookLogo from '../logos/gitbook.svg'
+import GithubLogo from '../logos/github-mark.svg'
 import SalesforceLogo from '../logos/salesforce.svg'
 import OutlookLogo from '../logos/outlook.svg';
 
@@ -168,6 +169,28 @@ export const INTEGRATIONS_LIST = [
         logo: GitbookLogo,
         active: true,
         data_source_type: 'GITBOOK',
+        requiresOAuth: false,
+        multiStep: true,
+        branding: {
+            header: {
+                primaryBackgroundColor: '#dadfe8',
+                primaryButtonColor: '#000000',
+                primaryLabelColor: '#FFFFFF',
+                primaryTextColor: '#000000',
+                secondaryTextColor: '#000000',
+            },
+        },
+    },
+    {
+        id: 'GITHUB',
+        subpath: 'github',
+        name: 'Github',
+        description: 'Lets your users connect their Github accounts to Carbon.',
+        announcementName: 'to connect Github',
+        icon: <img src={GithubLogo} className="cc-w-7 cc-h-7" />,
+        logo: GithubLogo,
+        active: true,
+        data_source_type: 'GITHUB',
         requiresOAuth: false,
         multiStep: true,
         branding: {
