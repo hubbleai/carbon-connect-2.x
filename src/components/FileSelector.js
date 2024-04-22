@@ -26,6 +26,7 @@ import {
   BsFiletypeXlsx,
   BsMarkdownFill,
 } from 'react-icons/bs';
+import { generateRequestId } from "../utils/helpers";
 
 const PER_PAGE = 25
 
@@ -40,6 +41,16 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
     defaultChunkSize,
     defaultOverlapSize,
     tags,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk,
+    setPageAsBoundary,
+    useRequestIds,
+    requestIds,
+    setRequestIds,
+    useOcr,
+    parsePdfTablesWithOcr
   } = useCarbon();
 
   // This holds the loading state of the files data.
@@ -290,6 +301,22 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
     const overlapSize =
       service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
     const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
+    const embeddingModelValue =
+      service?.embeddingModel || embeddingModel || null;
+    const generateSparseVectorsValue =
+      service?.generateSparseVectors || generateSparseVectors || false;
+    const prependFilenameToChunksValue =
+      service?.prependFilenameToChunks || prependFilenameToChunks || false;
+    const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
+    const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
+    const useOcrValue = service?.useOcr || useOcr || false;
+    const parsePdfTablesWithOcrValue = service?.parsePdfTablesWithOcr || parsePdfTablesWithOcr || false;
+
+    let requestId = null
+    if (useRequestIds) {
+      requestId = generateRequestId(20)
+      setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
+    }
 
     const requestBody = {
       data_source_id: account?.id,
@@ -298,6 +325,14 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
       chunk_size: chunkSize,
       chunk_overlap: overlapSize,
       skip_embedding_generation: skipEmbeddingGeneration,
+      embedding_model: embeddingModelValue,
+      generate_sparse_vectors: generateSparseVectorsValue,
+      prepend_filename_to_chunks: prependFilenameToChunksValue,
+      ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+      set_page_as_boundary: setPageAsBoundaryValue,
+      ...(requestId && { request_id: requestId }),
+      use_ocr: useOcrValue,
+      parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue
     };
 
     const syncFilesResponse = await authenticatedFetch(
