@@ -27,6 +27,8 @@ import {
   BsMarkdownFill,
 } from 'react-icons/bs';
 
+const PER_PAGE = 25
+
 const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
   const {
     accessToken,
@@ -48,7 +50,7 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
 
   // This holds the currently selected files. Used for breadcrumb.
   const [pwd, setPwd] = useState([
-    { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null },
+    { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null, accountId: null },
   ]);
 
   // This holds the currently viewing folder's id. The parent id of the files.
@@ -87,9 +89,6 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
   // Selected files list. This is the list of files that the user has selected.
   const [selectedFilesList, setSelectedFilesList] = useState([]);
 
-  // Used to avoid double fetches when the component mounts.
-  const [shouldFetch, setShouldFetch] = useState(false);
-
   // How the file selector works:
   // 1. We fetch the files data from the API and store it in the filesMasterList.
   // 2. We set the activeFilesList to the filesMasterList.
@@ -122,19 +121,21 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
   useEffect(() => {
     if (pwd.length > 0) {
       const lastPwd = pwd[pwd.length - 1];
+      if (lastPwd.accountId) {
+        // We update the filesMasterList with the files data in this method.
+        // TODO: Add/Update offset and hasMoreFiles  to fileMasterList as well.
+        setOffset(lastPwd.offset);
+        setHasMoreFiles(lastPwd.hasMoreFiles);
+        setParentId(lastPwd.parentId);
+        if (hasMoreFiles) {
+          setIsLoading(true)
+          fetchUserFilesMetaData(lastPwd.id, lastPwd.offset).then(() => setIsLoading(false))
+        }
 
-      // We update the filesMasterList with the files data in this method.
-      // TODO: Add/Update offset and hasMoreFiles  to fileMasterList as well.
-      setOffset(lastPwd.offset);
-      setHasMoreFiles(lastPwd.hasMoreFiles);
-      setParentId(lastPwd.parentId);
-      if (hasMoreFiles && shouldFetch) {
-        fetchUserFilesMetaData(lastPwd.id, lastPwd.offset);
+        updateFileSelectorViewData();
       }
-
-      updateFileSelectorViewData();
     }
-  }, [pwd]);
+  }, [JSON.stringify(pwd)]);
 
   useEffect(() => {
     if (!account || account?.sync_status !== 'READY') return;
@@ -143,10 +144,9 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
     setHasMoreFiles(true);
     setOffset(0);
     setPwd([
-      { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null },
+      { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null, accountId: account?.id },
     ]);
     setSelectedFilesList([]);
-    setShouldFetch(true);
   }, [account?.id, account?.source_items_synced_at, filePickerRefreshes]);
 
   // Once the files data is fetched, we set the active files list to the master list.
@@ -181,11 +181,11 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
 
   // File sync related
   const fetchUserFilesMetaData = async (parentId = null, offset = 0) => {
-    setIsLoading(true)
     const requestBody = {
       data_source_id: account?.id,
       pagination: {
         offset: offset,
+        limit: PER_PAGE
       },
     };
 
@@ -226,7 +226,6 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
         offset
       );
     }
-    setIsLoading(false)
   };
 
   const updateFileSelectorViewData = (
@@ -551,6 +550,7 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
           offset: 0,
           hasMoreFiles: true,
           parentId: lastPwd['id'],
+          accountId: account?.id
         });
 
         return pwdCopy;
@@ -615,6 +615,7 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
             // Check which list to be used here!
             hasMoreFiles ? filesMasterList.length + 1 : filesMasterList.length
           }
+          threshold={20}
         >
           {({ onRowsRendered, registerChild }) => (
             <AutoSizer>
