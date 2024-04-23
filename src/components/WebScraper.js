@@ -61,6 +61,8 @@ function WebScraper({
   const [selectAllUrls, setSelectAllUrls] = useState(false);
   const [service, setService] = useState(null);
 
+  const sitemapEnabled = service ? service?.sitemapEnabled ?? true : false;
+
   useEffect(() => {
     setService(
       processedIntegrations.find(
@@ -297,10 +299,10 @@ function WebScraper({
           <div className="cc-flex cc-w-full">
             <div
               onClick={() => setActiveTab('webpages')}
-              className={`cc-flex cc-py-2 cc-px-4 cc-w-1/2 cc-rounded-t-md cc-text-center cc-cursor-pointer ${activeTab === 'webpages'
+              className={`cc-flex cc-py-2 cc-px-4 cc-rounded-t-md cc-text-center cc-cursor-pointer ${activeTab === 'webpages'
                 ? 'cc-border-b-2 cc-font-bold'
                 : 'cc-border-b cc-font-normal'
-                } cc-items-center cc-space-x-2 cc-justify-center`}
+                } cc-items-center cc-space-x-2 cc-justify-center ${sitemapEnabled ? 'cc-w-1/2' : 'cc-w-full'}`}
               style={{
                 color:
                   activeTab === 'webpages' ? primaryBackgroundColor : 'black',
@@ -309,7 +311,7 @@ function WebScraper({
               <FaLaptop />
               <p>Website</p>
             </div>
-            <div
+            {sitemapEnabled ? <div
               onClick={() => setActiveTab('sitemap')}
               className={`cc-flex cc-py-2 cc-px-4 cc-w-1/2 cc-rounded-t-md cc-text-center cc-cursor-pointer ${activeTab === 'sitemap'
                 ? 'cc-border-b-2 cc-font-bold'
@@ -322,7 +324,7 @@ function WebScraper({
             >
               <FaSitemap />
               <p>Sitemap</p>
-            </div>
+            </div> : null}
           </div>
         </div>
       </Dialog.Title>

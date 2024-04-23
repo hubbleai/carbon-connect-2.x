@@ -75,6 +75,7 @@ export interface WebScraperIntegration extends BaseIntegration {
     htmlTagsToSkip?: string[];
     cssClassesToSkip?: string[];
     cssSelectorsToSkip?: string[];
+    sitemapEnabled?: boolean;
 }
 export type Integration = LocalFilesIntegration | WebScraperIntegration | BaseIntegration;
 export interface LocalFile {
@@ -120,6 +121,7 @@ export interface OnSuccessData {
         data_source_external_id: string | null;
         sync_status: string | null;
         files: LocalFile[] | WebScraper[] | OnSuccessDataFileObject[] | null;
+        request_id: string | null;
     } | null;
     action: ActionType;
     event: ActionType;
