@@ -6,6 +6,7 @@ import carbonLogo from '../carbon.svg';
 import { useCarbon } from '../contexts/CarbonContext';
 import { darkenColor } from '../utils/helpers';
 import * as Dialog from '@radix-ui/react-dialog';
+import { LuLoader } from "react-icons/lu";
 
 const Feature = ({ Icon, title, children }) => (
   <li className="cc-flex cc-flex-row cc-items-start cc-w-full cc-space-x-2 cc-py-2 cc-px-4 cc-text-black">
@@ -46,7 +47,10 @@ const CarbonAnnouncement = ({ setActiveStep, activeIntegrations }) => {
     navigateBackURL,
     manageModalOpenState,
     backButtonText,
+    loading: whiteLabelDataLoading
   } = useCarbon();
+
+  console.log(whiteLabelDataLoading)
 
   const isEntryPoint = Boolean(entryPoint);
   const isWhiteLabeledOrg = Boolean(whiteLabelingData?.remove_branding);
@@ -83,142 +87,154 @@ const CarbonAnnouncement = ({ setActiveStep, activeIntegrations }) => {
           />
         </div>
       </Dialog.Title>
-      <div className="cc-flex cc-flex-col cc-h-full cc-items-center cc-justify-between cc-p-6">
-        <div className="cc-flex cc-pt-8 -cc-space-x-2">
-          <img
-            src={brandIcon}
-            alt={`${orgName} Icon`}
-            className="cc-rounded-full cc-border cc-w-16"
-          />
-          {!isWhiteLabeledOrg && (
+      {whiteLabelDataLoading ? <div className="cc-flex cc-h-screen">
+        <div class="m-auto">
+          <div class="cc-flex cc-justify-center cc-items-center cc-h-screen">
+            <div class="cc-relative cc-inline-flex">
+              <div class="w-8 h-8 bg-blue-500 rounded-full"></div>
+              <div class="w-8 h-8 bg-blue-500 rounded-full absolute top-0 left-0 cc-animate-ping"></div>
+              <div class="w-8 h-8 bg-blue-500 rounded-full absolute top-0 left-0 cc-animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div> :
+        (<div className="cc-flex cc-flex-col cc-h-full cc-items-center cc-justify-between cc-p-6">
+          <div className="cc-flex cc-pt-8 -cc-space-x-2">
             <img
-              src={carbonLogo}
-              alt="Carbon Icon"
+              src={brandIcon}
+              alt={`${orgName} Icon`}
               className="cc-rounded-full cc-border cc-w-16"
             />
-          )}
-        </div>
-        {isWhiteLabeledOrg ? (
-          <div className="cc-text-xl cc-font-light cc-w-full cc-flex cc-justify-center cc-items-center cc-text-center">
-            <div>
-              <span className="cc-font-normal">{orgName}</span>
-              <span> wants to access your data </span>
-              {entryPointIntegrationObject?.announcementName && (
-                <>
-                  <span>on</span>
-                  <span className="cc-font-normal">
-                    {` ${entryPointIntegrationObject?.name}`}
-                  </span>
-                </>
-              )}
-            </div>
+            {!isWhiteLabeledOrg && (
+              <img
+                src={carbonLogo}
+                alt="Carbon Icon"
+                className="cc-rounded-full cc-border cc-w-16"
+              />
+            )}
           </div>
-        ) : (
-          <div className="cc-text-xl cc-font-light cc-w-full cc-flex cc-justify-center cc-items-center cc-text-center">
-            <div>
-              <span className="cc-font-normal">{orgName}</span>
-              <span> uses </span>
-              <span className="cc-font-normal">Carbon </span>
-              <span>
-                to connect{' '}
-                {entryPointIntegrationObject?.announcementName ? (
-                  <span className="cc-font-normal">
-                    {entryPointIntegrationObject?.name}
-                  </span>
-                ) : (
-                  <span>your data</span>
-                )}
-              </span>
-            </div>
-          </div>
-        )}
-        <ul className="">
-          <Feature Icon={HiLockClosed} title="Private">
-            Your credentials will never be made available to {orgName}
-          </Feature>
-          <Feature Icon={HiLink} title="Secure">
-            {isWhiteLabeledOrg
-              ? `By connecting, your data is securely shared with ${orgName} and 3rd parties like OpenAI.`
-              : `By connecting with Carbon, your data is securely shared with ${orgName} and 3rd parties like OpenAI.`}
-          </Feature>
-        </ul>
-        <div className="cc-flex cc-flex-col cc-space-y-3 cc-w-full cc-items-center">
           {isWhiteLabeledOrg ? (
-            <p className="cc-text-xs cc-text-center cc-text-gray-400">
-              {`By continuing, you agree to ${isWhiteLabeledEntryPoint ? orgName + "'s" : 'the following'
-                }`}
-
-              <br></br>
-              <a
-                href={tosURL || 'https://carbon.ai/terms'}
-                target="_blank"
-                className="cc-cursor-pointer"
-              >
-                <u>Terms of Service</u>
-              </a>
-              {` and `}
-              <a
-                href={privacyPolicyURL || 'https://carbon.ai/privacy'}
-                target="_blank"
-                className="cc-cursor-pointer"
-              >
-                <u>Privacy Policy</u>
-              </a>
-              {`.`}
-            </p>
+            <div className="cc-text-xl cc-font-light cc-w-full cc-flex cc-justify-center cc-items-center cc-text-center">
+              <div>
+                <span className="cc-font-normal">{orgName}</span>
+                <span> wants to access your data </span>
+                {entryPointIntegrationObject?.announcementName && (
+                  <>
+                    <span>on</span>
+                    <span className="cc-font-normal">
+                      {` ${entryPointIntegrationObject?.name}`}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
           ) : (
-            <p className="cc-text-xs cc-text-center cc-text-gray-400">
-              {`By continuing, you agree to Carbon's`}
-              <br></br>
-              <a
-                href="https://carbon.ai/terms"
-                target="_blank"
-                className="cc-cursor-pointer"
-              >
-                <u>Terms of Service</u>
-              </a>
-              {` and `}
-              <a
-                href="https://carbon.ai/privacy"
-                target="_blank"
-                className="cc-cursor-pointer"
-              >
-                <u>Privacy Policy</u>
-              </a>
-              {`.`}
-            </p>
+            <div className="cc-text-xl cc-font-light cc-w-full cc-flex cc-justify-center cc-items-center cc-text-center">
+              <div>
+                <span className="cc-font-normal">{orgName}</span>
+                <span> uses </span>
+                <span className="cc-font-normal">Carbon </span>
+                <span>
+                  to connect{' '}
+                  {entryPointIntegrationObject?.announcementName ? (
+                    <span className="cc-font-normal">
+                      {entryPointIntegrationObject?.name}
+                    </span>
+                  ) : (
+                    <span>your data</span>
+                  )}
+                </span>
+              </div>
+            </div>
           )}
+          <ul className="">
+            <Feature Icon={HiLockClosed} title="Private">
+              Your credentials will never be made available to {orgName}
+            </Feature>
+            <Feature Icon={HiLink} title="Secure">
+              {isWhiteLabeledOrg
+                ? `By connecting, your data is securely shared with ${orgName} and 3rd parties like OpenAI.`
+                : `By connecting with Carbon, your data is securely shared with ${orgName} and 3rd parties like OpenAI.`}
+            </Feature>
+          </ul>
+          <div className="cc-flex cc-flex-col cc-space-y-3 cc-w-full cc-items-center">
+            {isWhiteLabeledOrg ? (
+              <p className="cc-text-xs cc-text-center cc-text-gray-400">
+                {`By continuing, you agree to ${isWhiteLabeledEntryPoint ? orgName + "'s" : 'the following'
+                  }`}
 
-          <button
-            className="cc-w-full cc-h-12 cc-flex cc-flex-row cc-items-center cc-justify-center cc-rounded-md cc-cursor-pointer"
-            style={{
-              backgroundColor: connectButtonHoveredState
-                ? darkenColor(primaryBackgroundColor, -10)
-                : primaryBackgroundColor,
+                <br></br>
+                <a
+                  href={tosURL || 'https://carbon.ai/terms'}
+                  target="_blank"
+                  className="cc-cursor-pointer"
+                >
+                  <u>Terms of Service</u>
+                </a>
+                {` and `}
+                <a
+                  href={privacyPolicyURL || 'https://carbon.ai/privacy'}
+                  target="_blank"
+                  className="cc-cursor-pointer"
+                >
+                  <u>Privacy Policy</u>
+                </a>
+                {`.`}
+              </p>
+            ) : (
+              <p className="cc-text-xs cc-text-center cc-text-gray-400">
+                {`By continuing, you agree to Carbon's`}
+                <br></br>
+                <a
+                  href="https://carbon.ai/terms"
+                  target="_blank"
+                  className="cc-cursor-pointer"
+                >
+                  <u>Terms of Service</u>
+                </a>
+                {` and `}
+                <a
+                  href="https://carbon.ai/privacy"
+                  target="_blank"
+                  className="cc-cursor-pointer"
+                >
+                  <u>Privacy Policy</u>
+                </a>
+                {`.`}
+              </p>
+            )}
 
-              color: primaryTextColor,
-            }}
-            onClick={handleButtonClick}
-            onMouseEnter={() => setConnectButtonHoveredState(true)}
-            onMouseLeave={() => setConnectButtonHoveredState(false)}
-          >
-            <p>Connect</p>
-          </button>
-
-
-          {navigateBackURL && (
-            <p
-              className="cc-flex cc-flex-row cc-items-center cc-justify-center cc-cursor-pointer cc-text-xs hover:cc-underline"
+            <button
+              className="cc-w-full cc-h-12 cc-flex cc-flex-row cc-items-center cc-justify-center cc-rounded-md cc-cursor-pointer"
               style={{
-                color: secondaryTextColor,
+                backgroundColor: connectButtonHoveredState
+                  ? darkenColor(primaryBackgroundColor, -10)
+                  : primaryBackgroundColor,
+
+                color: primaryTextColor,
               }}
-              onClick={navigateBack}
+              onClick={handleButtonClick}
+              onMouseEnter={() => setConnectButtonHoveredState(true)}
+              onMouseLeave={() => setConnectButtonHoveredState(false)}
             >
-              {backButtonText || 'Go back'}
-            </p>
-          )}
-        </div>
-      </div>
+              <p>Connect</p>
+            </button>
+
+
+            {navigateBackURL && (
+              <p
+                className="cc-flex cc-flex-row cc-items-center cc-justify-center cc-cursor-pointer cc-text-xs hover:cc-underline"
+                style={{
+                  color: secondaryTextColor,
+                }}
+                onClick={navigateBack}
+              >
+                {backButtonText || 'Go back'}
+              </p>
+            )}
+          </div>
+        </div>)
+      }
     </div>
   );
 };

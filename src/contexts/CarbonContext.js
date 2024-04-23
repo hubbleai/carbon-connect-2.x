@@ -301,7 +301,8 @@ export const CarbonProvider = ({
     requestIds,
     useRequestIds,
     useOcr,
-    parsePdfTablesWithOcr
+    parsePdfTablesWithOcr,
+    loading
   };
 
   return (
