@@ -233,8 +233,8 @@ const IntegrationModal = ({
               "top": "15px",
               "right": "15px",
               "cursor": "pointer"
-            }}>
-              <IoClose />
+            }} className="cc-text-gray-400">
+              <IoClose style={{ height: "1.5rem", width: "1.5rem" }} />
             </button>
           </Dialog.Close> : null}
           {activeStep === 0 && (
