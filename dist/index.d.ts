@@ -154,6 +154,7 @@ export declare enum EmbeddingGenerators {
 export interface CarbonConnectProps {
     orgName: string;
     brandIcon: string;
+    loadingScreenColor: string;
     children?: ReactNode;
     tokenFetcher?: () => Promise<{
         access_token: string;

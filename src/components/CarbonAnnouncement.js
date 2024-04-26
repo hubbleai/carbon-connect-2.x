@@ -36,6 +36,7 @@ const CarbonAnnouncement = ({ setActiveStep, activeIntegrations }) => {
     brandIcon,
     primaryBackgroundColor,
     primaryTextColor,
+    loadingScreenColor,
     secondaryBackgroundColor,
     secondaryTextColor,
     entryPoint,
@@ -87,17 +88,14 @@ const CarbonAnnouncement = ({ setActiveStep, activeIntegrations }) => {
           />
         </div>
       </Dialog.Title>
-      {whiteLabelDataLoading ? <div className="cc-flex cc-h-screen">
-        <div class="m-auto">
-          <div class="cc-flex cc-justify-center cc-items-center cc-h-screen">
-            <div class="cc-relative cc-inline-flex">
-              <div class="w-8 h-8 bg-blue-500 rounded-full"></div>
-              <div class="w-8 h-8 bg-blue-500 rounded-full absolute top-0 left-0 cc-animate-ping"></div>
-              <div class="w-8 h-8 bg-blue-500 rounded-full absolute top-0 left-0 cc-animate-pulse"></div>
-            </div>
+      {whiteLabelDataLoading ?
+        <div class="cc-flex cc-justify-center cc-items-center cc-h-full">
+          <div class="cc-relative cc-inline-flex">
+            <div class="cc-w-8 cc-h-8 cc-rounded-full" style={{ "background-color": loadingScreenColor }}></div>
+            <div class="cc-w-8 cc-h-8 cc-rounded-full cc-absolute cc-top-0 cc-left-0 cc-animate-ping" style={{ "background-color": loadingScreenColor }}></div>
+            <div class="cc-w-8 cc-h-8 cc-rounded-full cc-absolute cc-top-0 cc-left-0 cc-animate-pulse" style={{ "background-color": loadingScreenColor }}></div>
           </div>
-        </div>
-      </div> :
+        </div> :
         (<div className="cc-flex cc-flex-col cc-h-full cc-items-center cc-justify-between cc-p-6">
           <div className="cc-flex cc-pt-8 -cc-space-x-2">
             <img
