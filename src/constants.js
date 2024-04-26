@@ -15,6 +15,8 @@ export const onSuccessEvents = {
 
 export const SYNC_FILES_ON_CONNECT = true
 
+export const SYNC_SOURCE_ITEMS = true
+
 export const TWO_STEP_CONNECTORS = [
   'ZENDESK', 'SHAREPOINT', 'CONFLUENCE', 'SALESFORCE', 'S3', 'FRESHDESK', 'GITBOOK', 'GITHUB'
 ]

@@ -4,7 +4,7 @@ import { HiUpload, HiInformationCircle } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 
 import '../index.css';
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_SOURCE_ITEMS } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
@@ -59,6 +59,7 @@ function S3Screen({ buttonColor, labelColor }) {
       const requestObject = {
         access_key: accessKey,
         access_key_secret: accessKeySecret,
+        syncSourceItems: service?.syncSourceItems ?? SYNC_SOURCE_ITEMS
       };
 
       const response = await authenticatedFetch(

@@ -21,7 +21,7 @@ import {
   resyncFile,
   deleteFiles
 } from 'carbon-connect-js';
-import { BASE_URL, FILE_PICKER_BASED_CONNECTORS, onSuccessEvents, PICKER_OR_URL_BASED_CONNECTORS, SYNC_FILES_ON_CONNECT, SYNC_URL_BASED_CONNECTORS, TWO_STEP_CONNECTORS } from '../constants';
+import { BASE_URL, FILE_PICKER_BASED_CONNECTORS, onSuccessEvents, PICKER_OR_URL_BASED_CONNECTORS, SYNC_FILES_ON_CONNECT, SYNC_SOURCE_ITEMS, SYNC_URL_BASED_CONNECTORS, TWO_STEP_CONNECTORS } from '../constants';
 import { VscDebugDisconnect, VscLoading, VscSync } from 'react-icons/vsc';
 import { IoCloudUploadOutline } from 'react-icons/io5';
 import { CiCircleList } from 'react-icons/ci';
@@ -470,6 +470,7 @@ const ThirdPartyHome = ({
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false
       const useOcrValue = service?.useOcr || useOcr || false;
       const parsePdfTablesWithOcrValue = service?.parsePdfTablesWithOcr || parsePdfTablesWithOcr || false;
+      const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
 
       let requestId = null
       if (useRequestIds) {
@@ -502,7 +503,8 @@ const ThirdPartyHome = ({
             ...extraParams,
             ...(requestId && { request_id: requestId }),
             use_ocr: useOcrValue,
-            parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue
+            parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue,
+            sync_source_items: syncSourceItems
           }),
         }
       );

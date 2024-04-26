@@ -4,7 +4,7 @@ import { HiUpload, HiInformationCircle } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 
 import '../index.css';
-import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT } from '../constants';
+import { BASE_URL, onSuccessEvents } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
@@ -64,9 +64,11 @@ function GithubScreen({ buttonColor, labelColor }) {
                 integration: 'GITHUB',
             });
             setIsLoading(true);
+            // we do not sync GH source items by default
             const requestObject = {
                 username: username,
                 access_token: ghToken,
+                sync_source_items: service?.syncSourceItems
             };
 
             const response = await authenticatedFetch(

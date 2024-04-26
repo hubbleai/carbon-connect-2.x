@@ -8,7 +8,7 @@ import { SiMicrosoftsharepoint } from 'react-icons/si';
 import { toast } from 'react-toastify';
 
 import '../index.css';
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_SOURCE_ITEMS } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
@@ -89,6 +89,7 @@ function SharepointScreen({ buttonColor, labelColor }) {
         service?.prependFilenameToChunks || prependFilenameToChunks || false;
       const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
+      const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
 
       let requestId = null
       if (useRequestIds) {
@@ -110,7 +111,8 @@ function SharepointScreen({ buttonColor, labelColor }) {
         ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
         connecting_new_account: true,
         set_page_as_boundary: setPageAsBoundaryValue,
-        ...(requestId && { request_id: requestId })
+        ...(requestId && { request_id: requestId }),
+        sync_source_items: syncSourceItems
       };
 
       const response = await authenticatedFetch(

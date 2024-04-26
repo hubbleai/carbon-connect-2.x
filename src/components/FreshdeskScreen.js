@@ -4,7 +4,7 @@ import { HiUpload, HiInformationCircle } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 
 import '../index.css';
-import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT, SYNC_SOURCE_ITEMS } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
@@ -80,6 +80,7 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 			const prependFilenameToChunksValue =
 				service?.prependFilenameToChunks || prependFilenameToChunks || false;
 			const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
+			const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
 
 			let requestId = null
 			if (useRequestIds) {
@@ -106,7 +107,8 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 				generate_sparse_vectors: generateSparseVectorsValue,
 				prepend_filename_to_chunks: prependFilenameToChunksValue,
 				sync_files_on_connection: syncFilesOnConnection,
-				...(requestId && { request_id: requestId })
+				...(requestId && { request_id: requestId }),
+				sync_source_items: syncSourceItems
 			};
 
 			const response = await authenticatedFetch(
