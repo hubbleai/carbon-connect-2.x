@@ -185,7 +185,7 @@ export enum EmbeddingGenerators {
 export interface CarbonConnectProps {
   orgName: string;
   brandIcon: string;
-  loadingScreenColor: string;
+  loadingIconColor: string;
   children?: ReactNode;
   tokenFetcher?: () => Promise<{ access_token: string }>;
   onSuccess?: (data: OnSuccessData) => void;
@@ -225,7 +225,7 @@ export interface CarbonConnectProps {
 const CarbonConnect: React.FC<CarbonConnectProps> = ({
   orgName,
   brandIcon,
-  loadingScreenColor = "#3B82F6",
+  loadingIconColor = "#3B82F6",
   children,
   tokenFetcher = () => {},
   onSuccess = () => {},
@@ -297,7 +297,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       enabledIntegrations={enabledIntegrations}
       orgName={orgName}
       brandIcon={brandIcon}
-      loadingScreenColor={loadingScreenColor}
+      loadingIconColor={loadingIconColor}
       environment={environment}
       entryPoint={entryPoint}
       tags={tags}
