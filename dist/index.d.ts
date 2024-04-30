@@ -42,6 +42,7 @@ export interface FileType {
     extension: string;
     chunkSize?: number;
     overlapSize?: number;
+    skipEmbeddingGeneration?: boolean;
     setPageAsBoundary?: boolean;
     useOcr?: boolean;
     generateSparseVectors?: boolean;
@@ -154,7 +155,7 @@ export declare enum EmbeddingGenerators {
 export interface CarbonConnectProps {
     orgName: string;
     brandIcon: string;
-    loadingScreenColor: string;
+    loadingIconColor: string;
     children?: ReactNode;
     tokenFetcher?: () => Promise<{
         access_token: string;
