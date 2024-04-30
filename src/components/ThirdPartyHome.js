@@ -42,6 +42,8 @@ import SalesforceScreen from "./SalesforceScreen";
 import { generateRequestId, getDataSourceDomain, getDataSourceEmail } from "../utils/helpers";
 import GithubScreen from "./GithubScreen";
 
+const PER_PAGE = 25
+
 const ThirdPartyHome = ({
   integrationName,
   activeIntegrations,
@@ -99,6 +101,7 @@ const ThirdPartyHome = ({
 
   const [hasMoreFiles, setHasMoreFiles] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [pauseDataSourceSelection, setPauseDataSourceSelection] = useState(false)
 
   const [sortState, setSortState] = useState({
     sortBy: '',
@@ -137,6 +140,7 @@ const ThirdPartyHome = ({
   }, [processedIntegrations]);
 
   useEffect(() => {
+    if (pauseDataSourceSelection) return
     const connected = activeIntegrations.filter(
       (integration) => integration.data_source_type === integrationName
     );
@@ -154,7 +158,16 @@ const ThirdPartyHome = ({
       }
     }
     setIsLoading(false)
-  }, [activeIntegrations.map(i => i.id + i?.source_items_synced_at + i?.sync_status).join(",")]);
+  }, [JSON.stringify(activeIntegrations), pauseDataSourceSelection]);
+
+  useEffect(() => {
+    if (!selectedDataSource) return
+    if (!selectedDataSource.files_synced_at && filePickerBasedConnectors.includes(integrationName)) {
+      setShowFileSelector(true)
+    } else {
+      setShowFileSelector(false)
+    }
+  }, [selectedDataSource?.id])
 
   useEffect(() => {
     if (!files.length) return;
@@ -172,9 +185,39 @@ const ThirdPartyHome = ({
       setSortedFiles([])
       setFilteredFiles([])
       setFilesLoading(true)
-      loadMoreRows().then(() => setFilesLoading(false));
+      loadInitialData().then(() => setFilesLoading(false));
     }
   }, [selectedDataSource?.id, showFileSelector, filesTabRefreshes]);
+
+  const loadInitialData = async () => {
+    if (!shouldShowFilesTab) return
+    const userFilesResponse = await getUserFiles({
+      accessToken: accessToken,
+      environment: environment,
+      offset: 0,
+      limit: PER_PAGE,
+      filters: {
+        organization_user_data_source_id: [selectedDataSource.id],
+      },
+      order_by: "created_at",
+      order_dir: "desc"
+    });
+    if (userFilesResponse.status === 200) {
+      const count = userFilesResponse.data.count;
+      const userFiles = userFilesResponse.data.results;
+      const newFiles = [...files, ...userFiles];
+      setFiles(newFiles);
+      setOffset(offset + userFiles.length);
+
+      if (count > offset + userFiles.length) {
+        setHasMoreFiles(true);
+      } else {
+        setHasMoreFiles(false);
+      }
+    } else {
+      setHasMoreFiles(false);
+    }
+  }
 
   const loadMoreRows = async () => {
     if (!shouldShowFilesTab) return
@@ -182,6 +225,7 @@ const ThirdPartyHome = ({
       accessToken: accessToken,
       environment: environment,
       offset: offset,
+      limit: PER_PAGE,
       filters: {
         organization_user_data_source_id: [selectedDataSource.id],
       },
@@ -815,6 +859,7 @@ const ThirdPartyHome = ({
                       isRowLoaded={isRowLoaded}
                       loadMoreRows={loadMoreRows}
                       rowCount={hasMoreFiles ? files.length + 1 : files.length}
+                      threshold={15}
                     >
                       {({ onRowsRendered, registerChild }) => (
                         <AutoSizer>
@@ -1042,6 +1087,10 @@ const ThirdPartyHome = ({
                     labelColor={
                       integrationData?.branding?.header?.primaryLabelColor
                     }
+                    activeIntegrations={activeIntegrations}
+                    setActiveStep={setActiveStep}
+                    pauseDataSourceSelection={pauseDataSourceSelection}
+                    setPauseDataSourceSelection={setPauseDataSourceSelection}
                   />
                 ))
               ) : (
