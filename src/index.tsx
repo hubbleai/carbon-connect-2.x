@@ -54,6 +54,7 @@ export interface FileType {
   extension: string;
   chunkSize?: number;
   overlapSize?: number;
+  skipEmbeddingGeneration?: boolean;
   setPageAsBoundary?: boolean;
   useOcr?: boolean;
   generateSparseVectors?: boolean;
