@@ -51,8 +51,6 @@ const CarbonAnnouncement = ({ setActiveStep, activeIntegrations }) => {
     loading: whiteLabelDataLoading
   } = useCarbon();
 
-  console.log(whiteLabelDataLoading)
-
   const isEntryPoint = Boolean(entryPoint);
   const isWhiteLabeledOrg = Boolean(whiteLabelingData?.remove_branding);
   const isWhiteLabeledEntryPoint = Boolean(

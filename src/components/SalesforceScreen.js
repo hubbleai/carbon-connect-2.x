@@ -56,6 +56,20 @@ function SalesforceScreen({ buttonColor, labelColor }) {
 				toast.error('Please enter your salesforce domain.');
 				return;
 			}
+
+			const domain = salesforceDomain
+				.replace('https://www.', '')
+				.replace('http://www.', '')
+				.replace('https://', '')
+				.replace('http://', '')
+				.replace(/\/$/, '')
+				.trim();
+
+			if (!domain.includes("my.salesforce.com")) {
+				toast.error("Domain should be of format {subdomain}.my.salesforce.com")
+				return
+			}
+
 			setIsLoading(true);
 			const oauthWindow = window.open('', '_blank');
 			oauthWindow.document.write('Loading...');
@@ -76,19 +90,12 @@ function SalesforceScreen({ buttonColor, labelColor }) {
 			const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
 			const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
 
+
 			let requestId = null
 			if (useRequestIds) {
 				requestId = generateRequestId(20)
 				setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
 			}
-
-			const domain = salesforceDomain
-				.replace('https://www.', '')
-				.replace('http://www.', '')
-				.replace('https://', '')
-				.replace('http://', '')
-				.replace(/\/$/, '')
-				.trim();
 
 			const requestObject = {
 				tags: tags,
