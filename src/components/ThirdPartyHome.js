@@ -217,7 +217,6 @@ const ThirdPartyHome = ({
       setHasMoreFiles(false);
     }
   }
-  console.log(filteredFiles, files.length)
 
   const loadMoreRows = async () => {
     if (!shouldShowFilesTab) return
