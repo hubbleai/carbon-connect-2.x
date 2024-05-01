@@ -61,7 +61,7 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
 
   // This holds the currently selected files. Used for breadcrumb.
   const [pwd, setPwd] = useState([
-    { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null, accountId: null },
+    { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null, accountId: null, filePickerRefreshes: filePickerRefreshes },
   ]);
 
   // This holds the currently viewing folder's id. The parent id of the files.
@@ -154,8 +154,9 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
     setFilesMasterList([]);
     setHasMoreFiles(true);
     setOffset(0);
+    // as a temp measure we are storing some additional data in pwd when it changes to force complete refetch
     setPwd([
-      { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null, accountId: account?.id },
+      { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null, accountId: account?.id, filePickerRefreshes: filePickerRefreshes, lastSync: account?.source_items_synced_at },
     ]);
     setSelectedFilesList([]);
   }, [account?.id, account?.source_items_synced_at, filePickerRefreshes]);

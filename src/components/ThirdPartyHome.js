@@ -140,11 +140,14 @@ const ThirdPartyHome = ({
   }, [processedIntegrations]);
 
   useEffect(() => {
-    if (pauseDataSourceSelection) return
+    console.log(pauseDataSourceSelection)
     const connected = activeIntegrations.filter(
       (integration) => integration.data_source_type === integrationName
     );
+    console.log(connected?.source_items_synced_at, selectedDataSource?.source_items_synced_at)
+    if (pauseDataSourceSelection) return
     setConnected(connected);
+
     if (
       (selectedDataSource === null && connected.length) ||
       (connected?.source_items_synced_at !== selectedDataSource?.source_items_synced_at) ||

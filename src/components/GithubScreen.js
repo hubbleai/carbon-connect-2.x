@@ -16,7 +16,6 @@ function GithubScreen({
             setStep={setStep}
         />
     } else {
-        setPauseDataSourceSelection(true)
         return <GithubRepoScreen
             username={username}
             activeIntegrations={activeIntegrations}

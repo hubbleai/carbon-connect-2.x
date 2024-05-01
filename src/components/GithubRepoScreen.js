@@ -28,6 +28,10 @@ function GithubRepoScreen({ username, activeIntegrations, setPauseDataSourceSele
 		setDataSource(ghSource)
 	}, [JSON.stringify(activeIntegrations)])
 
+	useEffect(() => {
+		setPauseDataSourceSelection(true)
+	}, [])
+
 	const {
 		authenticatedFetch,
 		environment,
@@ -77,9 +81,10 @@ function GithubRepoScreen({ username, activeIntegrations, setPauseDataSourceSele
 	};
 
 	const loadMoreRows = async () => {
+		if (!dataSource) return
 		try {
 			const res = await authenticatedFetch(
-				`${BASE_URL[environment]}/integrations/github/repos?username=${username}&page=${page + 1}&per_page=${PER_PAGE}`,
+				`${BASE_URL[environment]}/integrations/github/repos?data_source_id=${dataSource.id}&page=${page + 1}&per_page=${PER_PAGE}`,
 				{
 					method: 'GET',
 					headers: {
