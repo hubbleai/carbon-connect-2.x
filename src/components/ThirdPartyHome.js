@@ -205,8 +205,7 @@ const ThirdPartyHome = ({
     if (userFilesResponse.status === 200) {
       const count = userFilesResponse.data.count;
       const userFiles = userFilesResponse.data.results;
-      const newFiles = [...files, ...userFiles];
-      setFiles(newFiles);
+      setFiles([...userFiles]);
       setOffset(offset + userFiles.length);
 
       if (count > offset + userFiles.length) {
@@ -218,6 +217,7 @@ const ThirdPartyHome = ({
       setHasMoreFiles(false);
     }
   }
+  console.log(filteredFiles, files.length)
 
   const loadMoreRows = async () => {
     if (!shouldShowFilesTab) return
