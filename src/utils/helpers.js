@@ -70,3 +70,5 @@ export function generateRequestId(length) {
   }
   return prefix + result;
 }
+
+export const sleep = ms => new Promise(r => setTimeout(r, ms));

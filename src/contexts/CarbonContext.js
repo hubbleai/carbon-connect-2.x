@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT, SYNC_SOURCE_ITEMS } from '../constants';
 import { generateRequestId } from "../utils/helpers";
 import { INTEGRATIONS_LIST } from "../utils/integrationsList";
 
@@ -160,6 +160,7 @@ export const CarbonProvider = ({
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
       const useOcrValue = service?.useOcr || useOcr || false;
       const parsePdfTablesWithOcrValue = service?.parsePdfTablesWithOcr || parsePdfTablesWithOcr || false;
+      const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
 
       let requestId = null
       if (useRequestIds) {
@@ -190,7 +191,8 @@ export const CarbonProvider = ({
             connecting_new_account: true,
             ...(requestId && { request_id: requestId }),
             use_ocr: useOcrValue,
-            parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue
+            parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue,
+            sync_source_items: syncSourceItems
           }),
         }
       );

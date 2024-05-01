@@ -58,6 +58,7 @@ export interface BaseIntegration {
     prependFilenameToChunks?: boolean;
     maxItemsPerChunk?: number;
     syncFilesOnConnection?: boolean;
+    syncSourceItems?: boolean;
     setPageAsBoundary?: boolean;
     showFilesTab?: boolean;
     useOcr?: boolean;
