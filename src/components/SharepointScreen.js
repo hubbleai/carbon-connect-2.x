@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { darkenColor } from '../utils/helpers';
+import { darkenColor, generateRequestId } from '../utils/helpers';
 
 import * as Dialog from '@radix-ui/react-dialog';
 import { HiArrowLeft, HiUpload, HiInformationCircle } from 'react-icons/hi';
@@ -8,7 +8,7 @@ import { SiMicrosoftsharepoint } from 'react-icons/si';
 import { toast } from 'react-toastify';
 
 import '../index.css';
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_SOURCE_ITEMS } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
@@ -48,6 +48,14 @@ function SharepointScreen({ buttonColor, labelColor }) {
     onError,
     primaryBackgroundColor,
     primaryTextColor,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk,
+    setPageAsBoundary,
+    useRequestIds,
+    requestIds,
+    setRequestIds
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -62,7 +70,10 @@ function SharepointScreen({ buttonColor, labelColor }) {
         return;
       }
 
+      const oauthWindow = window.open('', '_blank');
+      oauthWindow.document.write('Loading...');
       setIsLoading(true);
+
       const chunkSize =
         service?.chunkSize || topLevelChunkSize || defaultChunkSize;
       const overlapSize =
@@ -70,6 +81,21 @@ function SharepointScreen({ buttonColor, labelColor }) {
       const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
       const tenant = microsoftTenant;
       const sitename = sharepointSiteName;
+      const embeddingModelValue =
+        service?.embeddingModel || embeddingModel || null;
+      const generateSparseVectorsValue =
+        service?.generateSparseVectors || generateSparseVectors || false;
+      const prependFilenameToChunksValue =
+        service?.prependFilenameToChunks || prependFilenameToChunks || false;
+      const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
+      const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
+      const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
+
+      let requestId = null
+      if (useRequestIds) {
+        requestId = generateRequestId(20)
+        setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
+      }
 
       const requestObject = {
         tags: tags,
@@ -79,6 +105,14 @@ function SharepointScreen({ buttonColor, labelColor }) {
         skip_embedding_generation: skipEmbeddingGeneration,
         microsoft_tenant: tenant,
         sharepoint_site_name: sitename,
+        embedding_model: embeddingModelValue,
+        generate_sparse_vectors: generateSparseVectorsValue,
+        prepend_filename_to_chunks: prependFilenameToChunksValue,
+        ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+        connecting_new_account: true,
+        set_page_as_boundary: setPageAsBoundaryValue,
+        ...(requestId && { request_id: requestId }),
+        sync_source_items: syncSourceItems
       };
 
       const response = await authenticatedFetch(
@@ -93,18 +127,21 @@ function SharepointScreen({ buttonColor, labelColor }) {
         }
       );
 
+      const oAuthURLResponseData = await response.json();
+
       if (response.status === 200) {
         onSuccess({
           status: 200,
-          data: null,
+          data: { request_id: requestId },
           action: onSuccessEvents.INITIATE,
           event: onSuccessEvents.INITIATE,
           integration: 'SHAREPOINT',
         });
-        setIsLoading(false);
-        const oAuthURLResponseData = await response.json();
-        window.open(oAuthURLResponseData.oauth_url, '_blank');
+        oauthWindow.location.href = oAuthURLResponseData.oauth_url;
+      } else {
+        oauthWindow.document.body.innerHTML = oAuthURLResponseData.detail;
       }
+      setIsLoading(false);
     } catch (error) {
       toast.error('Error getting oAuth URL. Please try again.');
       setIsLoading(false);

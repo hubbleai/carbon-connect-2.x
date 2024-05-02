@@ -23,3 +23,52 @@ export function formatFileSize(sizeInBytes) {
     return `${sizeInBytes} bytes`;
   }
 }
+
+export function getDataSourceDomain(dataSource) {
+  const extId = dataSource.data_source_external_id
+  const type = dataSource.data_source_type
+
+  if (!extId) return null
+
+  const parts = extId.split("|")
+
+  if (type == "SALESFORCE" || type == "ZENDESK" || type == "SHAREPOINT") {
+    if (parts.length == 3) return parts[2]
+    else return null
+  }
+
+  if (type == "CONFLUENCE") {
+    const workspace = parts[2]
+    const workspaceParts = workspace.split("/")
+    if (workspaceParts.length == 2) return workspaceParts[1]
+    return null
+  }
+}
+
+export function getDataSourceEmail(dataSource) {
+  const extId = dataSource.data_source_external_id
+  if (!extId) return ""
+  if (extId.indexOf("|") !== -1) {
+    const parts = extId.split("|")
+    if (parts.length > 1) return parts[1]
+  } else if (extId.indexOf("-")) {
+    const parts = extId.split("-")
+    if (parts.length > 1) return parts[1]
+  }
+  return ""
+}
+
+export function generateRequestId(length) {
+  const prefix = "cc-"
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return prefix + result;
+}
+
+export const sleep = ms => new Promise(r => setTimeout(r, ms));

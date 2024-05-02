@@ -61,6 +61,8 @@ function WebScraper({
   const [selectAllUrls, setSelectAllUrls] = useState(false);
   const [service, setService] = useState(null);
 
+  const sitemapEnabled = service ? service?.sitemapEnabled ?? true : false;
+
   useEffect(() => {
     setService(
       processedIntegrations.find(
@@ -79,6 +81,10 @@ function WebScraper({
     authenticatedFetch,
     navigateBackURL,
     manageModalOpenState,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk
   } = useCarbon();
 
   const submitScrapeRequest = async () => {
@@ -95,20 +101,31 @@ function WebScraper({
         service?.chunkSize || topLevelChunkSize || defaultChunkSize;
       const overlapSize =
         service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
-      const recursionDepth = service?.recursionDepth || DEFAULT_RECURSION_DEPTH;
+      const recursionDepth = service?.recursionDepth ?? DEFAULT_RECURSION_DEPTH;
       const maxPagesToScrape =
         service?.maxPagesToScrape || DEFAULT_MAX_PAGES_TO_SCRAPE;
       const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
-      const enableAutoSync = service?.enableAutoSync || false;
+      const enableAutoSync = service?.enableAutoSync ?? false;
+      const generateSparseVectorsValue =
+        service?.generateSparseVectors ?? generateSparseVectors ?? false;
+      const prependFilenameToChunksValue =
+        service?.prependFilenameToChunks ?? prependFilenameToChunks ?? false;
+      const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
+      const embeddingModelValue = service?.embeddingModel || embeddingModel || null;
+
+      const htmlTagsToSkip = service?.htmlTagsToSkip || [];
+      const cssClassesToSkip = service?.cssClassesToSkip || [];
+      const cssSelectorsToSkip = service?.cssSelectorsToSkip || [];
+
 
       setIsLoading(true);
       const urlPattern = new RegExp(
         '^(https?:\\/\\/)?' + // protocol
-          '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
-          '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-          '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
-          '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-          '(\\#[-a-z\\d_]*)?$',
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$',
         'i'
       ); // fragment locator
 
@@ -130,25 +147,39 @@ function WebScraper({
       const requestObject =
         activeTab === 'sitemap'
           ? selectedSitemapUrls.map((url) => ({
-              url: url,
-              tags: tags,
-              recursion_depth: 1,
-              max_pages_to_scrape: 1,
-              chunk_size: chunkSize,
-              chunk_overlap: overlapSize,
-              skip_embedding_generation: skipEmbeddingGeneration,
-              enable_auto_sync: enableAutoSync,
-            }))
+            url: url,
+            tags: tags,
+            recursion_depth: 1,
+            max_pages_to_scrape: 1,
+            chunk_size: chunkSize,
+            chunk_overlap: overlapSize,
+            skip_embedding_generation: skipEmbeddingGeneration,
+            enable_auto_sync: enableAutoSync,
+            generate_sparse_vectors: generateSparseVectorsValue,
+            prepend_filename_to_chunks: prependFilenameToChunksValue,
+            html_tags_to_skip: htmlTagsToSkip,
+            css_classes_to_skip: cssClassesToSkip,
+            css_selectros_to_skip: cssSelectorsToSkip,
+            ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+            ...(embeddingModelValue && { embedding_model: embeddingModelValue })
+          }))
           : validUrls.map((url) => ({
-              url: url,
-              tags: tags,
-              recursion_depth: recursionDepth,
-              max_pages_to_scrape: maxPagesToScrape,
-              chunk_size: chunkSize,
-              chunk_overlap: overlapSize,
-              skip_embedding_generation: skipEmbeddingGeneration,
-              enable_auto_sync: enableAutoSync,
-            }));
+            url: url,
+            tags: tags,
+            recursion_depth: recursionDepth,
+            max_pages_to_scrape: maxPagesToScrape,
+            chunk_size: chunkSize,
+            chunk_overlap: overlapSize,
+            skip_embedding_generation: skipEmbeddingGeneration,
+            enable_auto_sync: enableAutoSync,
+            generate_sparse_vectors: generateSparseVectorsValue,
+            prepend_filename_to_chunks: prependFilenameToChunksValue,
+            html_tags_to_skip: htmlTagsToSkip,
+            css_classes_to_skip: cssClassesToSkip,
+            css_selectros_to_skip: cssSelectorsToSkip,
+            ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+            ...(embeddingModelValue && { embedding_model: embeddingModelValue })
+          }));
 
       const uploadResponse = await authenticatedFetch(
         `${BASE_URL[environment]}/web_scrape`,
@@ -161,9 +192,8 @@ function WebScraper({
           body: JSON.stringify(requestObject),
         }
       );
-
+      const responseData = await uploadResponse.json();
       if (uploadResponse.status === 200) {
-        const responseData = await uploadResponse.json();
         setScrapingResponse('Scraping request initiated successfully.');
         onSuccess({
           status: 200,
@@ -176,6 +206,9 @@ function WebScraper({
           event: onSuccessEvents.UPDATE,
           integration: 'WEB_SCRAPER',
         });
+      } else {
+        toast.error(responseData.detail);
+        setIsLoading(false);
       }
     } catch (error) {
       toast.error('Error initiating scraping. Please try again.');
@@ -266,11 +299,10 @@ function WebScraper({
           <div className="cc-flex cc-w-full">
             <div
               onClick={() => setActiveTab('webpages')}
-              className={`cc-flex cc-py-2 cc-px-4 cc-w-1/2 cc-rounded-t-md cc-text-center cc-cursor-pointer ${
-                activeTab === 'webpages'
-                  ? 'cc-border-b-2 cc-font-bold'
-                  : 'cc-border-b cc-font-normal'
-              } cc-items-center cc-space-x-2 cc-justify-center`}
+              className={`cc-flex cc-py-2 cc-px-4 cc-rounded-t-md cc-text-center cc-cursor-pointer ${activeTab === 'webpages'
+                ? 'cc-border-b-2 cc-font-bold'
+                : 'cc-border-b cc-font-normal'
+                } cc-items-center cc-space-x-2 cc-justify-center ${sitemapEnabled ? 'cc-w-1/2' : 'cc-w-full'}`}
               style={{
                 color:
                   activeTab === 'webpages' ? primaryBackgroundColor : 'black',
@@ -279,13 +311,12 @@ function WebScraper({
               <FaLaptop />
               <p>Website</p>
             </div>
-            <div
+            {sitemapEnabled ? <div
               onClick={() => setActiveTab('sitemap')}
-              className={`cc-flex cc-py-2 cc-px-4 cc-w-1/2 cc-rounded-t-md cc-text-center cc-cursor-pointer ${
-                activeTab === 'sitemap'
-                  ? 'cc-border-b-2 cc-font-bold'
-                  : 'cc-border-b cc-font-normal'
-              } cc-items-center cc-space-x-2 cc-justify-center`}
+              className={`cc-flex cc-py-2 cc-px-4 cc-w-1/2 cc-rounded-t-md cc-text-center cc-cursor-pointer ${activeTab === 'sitemap'
+                ? 'cc-border-b-2 cc-font-bold'
+                : 'cc-border-b cc-font-normal'
+                } cc-items-center cc-space-x-2 cc-justify-center`}
               style={{
                 color:
                   activeTab === 'sitemap' ? primaryBackgroundColor : 'black',
@@ -293,7 +324,7 @@ function WebScraper({
             >
               <FaSitemap />
               <p>Sitemap</p>
-            </div>
+            </div> : null}
           </div>
         </div>
       </Dialog.Title>
@@ -456,13 +487,11 @@ function WebScraper({
           <p className="cc-flex cc-text-gray-500 cc-pb-2 cc-space-x-2">
             <HiInformationCircle className="cc-w-4 cc-h-4" />
             {activeTab === 'sitemap' ? (
-              <span className="text-xs">{`Select a max of ${
-                service?.maxPagesToScrape || DEFAULT_MAX_PAGES_TO_SCRAPE
-              } links to sync.`}</span>
+              <span className="text-xs">{`Select a max of ${service?.maxPagesToScrape || DEFAULT_MAX_PAGES_TO_SCRAPE
+                } links to sync.`}</span>
             ) : (
-              <span className="text-xs">{`The first ${
-                service?.maxPagesToScrape || DEFAULT_MAX_PAGES_TO_SCRAPE
-              } links per website are synced.`}</span>
+              <span className="text-xs">{`The first ${service?.maxPagesToScrape || DEFAULT_MAX_PAGES_TO_SCRAPE
+                } links per website are synced.`}</span>
             )}
           </p>
           <button

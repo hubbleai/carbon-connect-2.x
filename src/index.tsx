@@ -1,63 +1,98 @@
-import React, { useState, ReactNode } from 'react';
-import './index.css';
+import React, { useState, ReactNode } from "react";
+import "./index.css";
 
 // @ts-ignore
-import IntegrationModal from './components/IntegrationModal';
+import IntegrationModal from "./components/IntegrationModal";
 
 // @ts-ignore
-import { CarbonProvider } from './contexts/CarbonContext';
+import { CarbonProvider } from "./contexts/CarbonContext";
 
 // Enums
 export enum ActionType {
-  INITIATE = 'INITIATE',
-  ADD = 'ADD',
-  UPDATE = 'UPDATE',
-  CANCEL = 'CANCEL',
+  INITIATE = "INITIATE",
+  ADD = "ADD",
+  UPDATE = "UPDATE",
+  CANCEL = "CANCEL",
 }
 
 export enum IntegrationName {
-  LOCAL_FILES = 'LOCAL_FILES',
-  NOTION = 'NOTION',
-  WEB_SCRAPER = 'WEB_SCRAPER',
-  GOOGLE_DRIVE = 'GOOGLE_DRIVE',
-  INTERCOM = 'INTERCOM',
-  DROPBOX = 'DROPBOX',
-  ONEDRIVE = 'ONEDRIVE',
-  BOX = 'BOX',
-  ZENDESK = 'ZENDESK',
-  SHAREPOINT = 'SHAREPOINT',
-  ZOTERO = 'ZOTERO',
-  CONFLUENCE = 'CONFLUENCE',
+  LOCAL_FILES = "LOCAL_FILES",
+  NOTION = "NOTION",
+  WEB_SCRAPER = "WEB_SCRAPER",
+  GOOGLE_DRIVE = "GOOGLE_DRIVE",
+  INTERCOM = "INTERCOM",
+  DROPBOX = "DROPBOX",
+  ONEDRIVE = "ONEDRIVE",
+  BOX = "BOX",
+  ZENDESK = "ZENDESK",
+  SHAREPOINT = "SHAREPOINT",
+  ZOTERO = "ZOTERO",
+  CONFLUENCE = "CONFLUENCE",
+  S3 = "S3",
+  GMAIL = "GMAIL",
+  FRESHDESK = "FRESHDESK",
+  GITBOOK = "GITBOOK",
+  OUTLOOK = "OUTLOOK",
+  SALESFORCE = "SALESFORCE",
+  GITHUB = "GITHUB",
 }
 
 export enum SyncStatus {
-  READY = 'READY',
-  QUEUED_FOR_SYNCING = 'QUEUED_FOR_SYNCING',
-  SYNCING = 'SYNCING',
-  SYNC_ERROR = 'SYNC_ERROR',
+  READY = "READY",
+  QUEUED_FOR_SYNCING = "QUEUED_FOR_SYNCING",
+  SYNCING = "SYNCING",
+  SYNC_ERROR = "SYNC_ERROR",
+}
+
+export enum FilePickerMode {
+  FILES = "FILES",
+  FOLDERS = "FOLDERS",
+  BOTH = "BOTH",
 }
 
 export interface FileType {
   extension: string;
   chunkSize?: number;
   overlapSize?: number;
+  skipEmbeddingGeneration?: boolean;
+  setPageAsBoundary?: boolean;
+  useOcr?: boolean;
+  generateSparseVectors?: boolean;
+  parsePdfTablesWithOcr?: boolean;
 }
+
 export interface BaseIntegration {
   id: IntegrationName;
   chunkSize?: number;
   overlapSize?: number;
   skipEmbeddingGeneration?: boolean;
   enableAutoSync?: boolean;
+  generateSparseVectors?: boolean;
+  prependFilenameToChunks?: boolean;
+  maxItemsPerChunk?: number;
+  syncFilesOnConnection?: boolean;
+  syncSourceItems?: boolean;
+  setPageAsBoundary?: boolean;
+  showFilesTab?: boolean;
+  useOcr?: boolean;
+  parsePdfTablesWithOcr?: boolean;
 }
+
 export interface LocalFilesIntegration extends BaseIntegration {
   maxFileSize: number;
   allowMultipleFiles: boolean;
   maxFilesCount?: number;
   allowedFileTypes?: FileType[];
+  filePickerMode?: FilePickerMode;
 }
+
 export interface WebScraperIntegration extends BaseIntegration {
   recursionDepth?: number;
   maxPagesToScrape?: number;
+  htmlTagsToSkip?: string[];
+  cssClassesToSkip?: string[];
+  cssSelectorsToSkip?: string[];
+  sitemapEnabled?: boolean;
 }
 
 export type Integration =
@@ -114,6 +149,7 @@ export interface OnSuccessData {
     data_source_external_id: string | null;
     sync_status: string | null;
     files: LocalFile[] | WebScraper[] | OnSuccessDataFileObject[] | null;
+    request_id: string | null;
   } | null;
   action: ActionType;
   event: ActionType;
@@ -131,9 +167,27 @@ export interface OnErrorData {
 
 export type TagValue = string | number | string[] | number[];
 
+export enum EmbeddingGenerators {
+  OPENAI = "OPENAI",
+  AZURE_OPENAI = "AZURE_OPENAI",
+  AZURE_ADA_LARGE_256 = "AZURE_ADA_LARGE_256",
+  AZURE_ADA_LARGE_1024 = "AZURE_ADA_LARGE_1024",
+  AZURE_ADA_LARGE_3072 = "AZURE_ADA_LARGE_3072",
+  AZURE_ADA_SMALL_512 = "AZURE_ADA_SMALL_512",
+  AZURE_ADA_SMALL_1536 = "AZURE_ADA_SMALL_1536",
+  COHERE_MULTILINGUAL_V3 = "COHERE_MULTILINGUAL_V3",
+  VERTEX_MULTIMODAL = "VERTEX_MULTIMODAL",
+  OPENAI_ADA_LARGE_256 = "OPENAI_ADA_LARGE_256",
+  OPENAI_ADA_LARGE_1024 = "OPENAI_ADA_LARGE_1024",
+  OPENAI_ADA_LARGE_3072 = "OPENAI_ADA_LARGE_3072",
+  OPENAI_ADA_SMALL_512 = "OPENAI_ADA_SMALL_512",
+  OPENAI_ADA_SMALL_1536 = "OPENAI_ADA_SMALL_1536",
+}
+
 export interface CarbonConnectProps {
   orgName: string;
   brandIcon: string;
+  loadingIconColor: string;
   children?: ReactNode;
   tokenFetcher?: () => Promise<{ access_token: string }>;
   onSuccess?: (data: OnSuccessData) => void;
@@ -159,62 +213,85 @@ export interface CarbonConnectProps {
   backButtonText?: string;
   zIndex?: number;
   enableToasts?: boolean;
+  embeddingModel?: EmbeddingGenerators;
+  generateSparseVectors?: boolean;
+  prependFilenameToChunks?: boolean;
+  maxItemsPerChunk?: number;
+  setPageAsBoundary?: boolean;
+  showFilesTab?: boolean;
+  useRequestIds?: boolean;
+  useOcr?: boolean;
+  parsePdfTablesWithOcr?: boolean;
 }
 
 const CarbonConnect: React.FC<CarbonConnectProps> = ({
   orgName,
   brandIcon,
+  loadingIconColor = "#3B82F6",
   children,
   tokenFetcher = () => {},
   onSuccess = () => {},
   onError = () => {},
-  tags = [],
+  tags = {},
   maxFileSize = 20000000,
-  environment = 'PRODUCTION',
+  environment = "PRODUCTION",
   entryPoint = null,
   enabledIntegrations = [
     {
-      id: 'LOCAL_FILES',
+      id: "LOCAL_FILES",
       chunkSize: 100,
       overlapSize: 10,
       maxFileSize: 20000000,
       allowMultipleFiles: true,
       skipEmbeddingGeneration: false,
+      setPageAsBoundary: false,
+      filePickerMode: "FILES",
       allowedFileTypes: [
         {
-          extension: 'csv',
+          extension: "csv",
         },
         {
-          extension: 'txt',
+          extension: "txt",
         },
         {
-          extension: 'pdf',
+          extension: "pdf",
         },
       ],
     },
   ],
-  primaryBackgroundColor = '#000000',
-  primaryTextColor = '#FFFFFF',
-  secondaryBackgroundColor = '#FFFFFF',
-  secondaryTextColor = '#000000',
+  primaryBackgroundColor = "#000000",
+  primaryTextColor = "#FFFFFF",
+  secondaryBackgroundColor = "#FFFFFF",
+  secondaryTextColor = "#000000",
   allowMultipleFiles = false,
   open = false,
   setOpen = null,
   chunkSize = 1500,
   overlapSize = 20,
-  tosURL = 'https://carbon.ai/terms',
-  privacyPolicyURL = 'https://carbon.ai/privacy',
+  tosURL = "https://carbon.ai/terms",
+  privacyPolicyURL = "https://carbon.ai/privacy",
   alwaysOpen = false,
   navigateBackURL = null,
-  backButtonText = 'Go Back',
+  backButtonText = "Go Back",
   zIndex = 1000,
   enableToasts = true,
+  embeddingModel = EmbeddingGenerators.OPENAI,
+  generateSparseVectors = false,
+  prependFilenameToChunks = false,
+  maxItemsPerChunk = null,
+  setPageAsBoundary = false,
+  showFilesTab = true,
+  useRequestIds = false,
+  useOcr = false,
+  parsePdfTablesWithOcr = false,
 }) => {
   const [activeStep, setActiveStep] = useState<string | number>(
-    entryPoint === 'LOCAL_FILES' || entryPoint === 'WEB_SCRAPER'
+    entryPoint === "LOCAL_FILES" || entryPoint === "WEB_SCRAPER"
       ? entryPoint
       : 0
   );
+
+  const [requestIds, setRequestIds] = useState({});
 
   return (
     <CarbonProvider
@@ -222,6 +299,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       enabledIntegrations={enabledIntegrations}
       orgName={orgName}
       brandIcon={brandIcon}
+      loadingIconColor={loadingIconColor}
       environment={environment}
       entryPoint={entryPoint}
       tags={tags}
@@ -246,6 +324,17 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       backButtonText={backButtonText}
       enableToasts={enableToasts}
       zIndex={zIndex}
+      embeddingModel={embeddingModel}
+      generateSparseVectors={generateSparseVectors}
+      prependFilenameToChunks={prependFilenameToChunks}
+      maxItemsPerChunk={maxItemsPerChunk}
+      setPageAsBoundary={setPageAsBoundary}
+      showFilesTab={showFilesTab}
+      useRequestIds={useRequestIds}
+      requestIds={requestIds}
+      setRequestIds={setRequestIds}
+      useOcr={useOcr}
+      parsePdfTablesWithOcr={parsePdfTablesWithOcr}
     >
       <IntegrationModal
         orgName={orgName}
@@ -270,6 +359,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
         backButtonText={backButtonText}
         zIndex={zIndex}
         enableToasts={enableToasts}
+        requestIds={requestIds}
       >
         {children}
       </IntegrationModal>

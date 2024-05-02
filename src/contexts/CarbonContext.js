@@ -1,352 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-import { BsGoogle, BsCloudUpload, BsDropbox } from 'react-icons/bs';
-import { RxNotionLogo } from 'react-icons/rx';
-import { CgWebsite } from 'react-icons/cg';
-import { FaIntercom } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
-import { GrOnedrive } from 'react-icons/gr';
-import {
-  SiBox,
-  SiConfluence,
-  SiMicrosoftsharepoint,
-  SiZendesk,
-} from 'react-icons/si';
-import { BASE_URL, onSuccessEvents } from '../constants';
-import zoteroLogoPng from '../zotero.png';
+import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT, SYNC_SOURCE_ITEMS } from '../constants';
+import { generateRequestId } from "../utils/helpers";
+import { INTEGRATIONS_LIST } from "../utils/integrationsList";
 
-import BoxLogo from '../logos/box.svg';
-import ConfluenceLogo from '../logos/confluence.svg';
-import DropboxLogo from '../logos/dropbox.svg';
-// import GmailLogo from '../logos/gmail.svg';
-import GoogleDriveLogo from '../logos/google_drive.svg';
-import IntercomLogo from '../logos/intercom.svg';
-import NotionLogo from '../logos/notion.svg';
-import OneDriveLogo from '../logos/onedrive.svg';
-import SharePointLogo from '../logos/sharepoint.svg';
-import FileUploadIcon from '../logos/file_upload.svg';
-import WebScraperIcon from '../logos/web_scraper.svg';
-// import SlackLogo from '../logos/slack.svg';
-import ZendeskLogo from '../logos/zendesk.svg';
-import ZoteroLogo from '../logos/zotero.svg';
-
-const DEFAAULT_CHUNK_SIZE = 1500;
-const DEFAAULT_OVERLAP_SIZE = 20;
-
-const integrationsList = [
-  {
-    id: 'BOX',
-    subpath: 'box',
-    name: 'Box',
-    description: 'Connect your Box account',
-    announcementName: 'to connect Box',
-    icon: <SiBox className="cc-w-7 cc-h-7" />,
-    logo: BoxLogo,
-    active: true,
-    data_source_type: 'BOX',
-    requiresOAuth: true,
-    multiStep: false,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#d1f2ff',
-        primaryButtonColor: '#04adef',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'CONFLUENCE',
-    subpath: 'confluence',
-    name: 'Confluence',
-    description: 'Connect your Confluence account',
-    announcementName: 'to connect Confluence',
-    icon: <SiConfluence className="cc-w-7 cc-h-7" />,
-    logo: ConfluenceLogo,
-    active: true,
-    data_source_type: 'CONFLUENCE',
-    requiresOAuth: true,
-    multiStep: true,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#d6e7ff',
-        primaryButtonColor: '#2381fc',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'DROPBOX',
-    subpath: 'dropbox',
-    name: 'Dropbox',
-    description: 'Connect your Dropbox account',
-    announcementName: 'to connect Dropbox',
-    icon: <BsDropbox className="cc-w-7 cc-h-7" />,
-    logo: DropboxLogo,
-    active: true,
-    data_source_type: 'DROPBOX',
-    requiresOAuth: true,
-    multiStep: false,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#d6ecfc',
-        primaryButtonColor: '#007ee5',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'LOCAL_FILES',
-    subpath: 'local',
-    name: 'File Upload',
-    description: 'Upload files from your computer',
-    announcementName: 'to upload local files',
-    icon: <BsCloudUpload className="cc-w-7 cc-h-7" />,
-    logo: FileUploadIcon,
-    active: true,
-    data_source_type: 'LOCAL_FILES',
-    requiresOAuth: false,
-    multiStep: false,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#dadfe8',
-        primaryButtonColor: '#000000',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'GOOGLE_DRIVE',
-    subpath: 'google',
-    name: 'Google Drive',
-    description: 'Connect your Google Drive account',
-    announcementName: 'to connect Google Drive',
-    icon: <FcGoogle className="cc-w-7 cc-h-7" />,
-    logo: GoogleDriveLogo,
-    active: true,
-    data_source_type: 'GOOGLE_DRIVE',
-    requiresOAuth: true,
-    multiStep: false,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#c9ddff',
-        primaryButtonColor: '#3777e3',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'INTERCOM',
-    subpath: 'intercom',
-    name: 'Intercom',
-    description: 'Connect your Intercom account',
-    announcementName: 'to connect Intercom',
-    icon: <FaIntercom className="cc-w-7 cc-h-7" />,
-    logo: IntercomLogo,
-    active: true,
-    data_source_type: 'INTERCOM',
-    requiresOAuth: true,
-    multiStep: false,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#d6ecfc',
-        primaryButtonColor: '#007ee5',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'NOTION',
-    subpath: 'notion',
-    name: 'Notion',
-    description: 'Connect your Notion accounts',
-    announcementName: 'to connect Notion',
-    icon: <RxNotionLogo className="cc-w-7 cc-h-7" />,
-    logo: NotionLogo,
-    active: true,
-    data_source_type: 'NOTION',
-    requiresOAuth: true,
-    multiStep: false,
-    supportsMultipleAccounts: true,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#dadfe8',
-        primaryButtonColor: '#000000',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'ONEDRIVE',
-    subpath: 'onedrive',
-    name: 'OneDrive',
-    description: 'Connect your OneDrive account',
-    announcementName: 'to connect OneDrive',
-    icon: <GrOnedrive className="cc-w-7 cc-h-7" />,
-    logo: OneDriveLogo,
-    active: true,
-    data_source_type: 'ONEDRIVE',
-    requiresOAuth: true,
-    multiStep: false,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#d6ebff',
-        primaryButtonColor: '#0363b8',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'SHAREPOINT',
-    subpath: 'sharepoint',
-    name: 'Sharepoint',
-    description: 'Connect your Sharepoint account',
-    announcementName: 'to connect Sharepoint',
-    icon: <SiMicrosoftsharepoint className="cc-w-7 cc-h-7" />,
-    logo: SharePointLogo,
-    active: true,
-    data_source_type: 'SHAREPOINT',
-    requiresOAuth: true,
-    multiStep: true,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#c8f5f7',
-        primaryButtonColor: '#036b70',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'WEB_SCRAPER',
-    subpath: 'scraper',
-    name: 'Web Scraper',
-    description: 'Scrape data from any website',
-    announcementName: 'for Web Scraping',
-    icon: <CgWebsite className="cc-w-7 cc-h-7" />,
-    logo: WebScraperIcon,
-    active: true,
-    data_source_type: 'WEB_SCRAPER',
-    requiresOAuth: false,
-    multiStep: false,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#dadfe8',
-        primaryButtonColor: '#000000',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'ZENDESK',
-    subpath: 'zendesk',
-    name: 'Zendesk',
-    description: 'Connect your Zendesk account',
-    announcementName: 'to connect Zendesk',
-    icon: <SiZendesk className="cc-w-7 cc-h-7" />,
-    logo: ZendeskLogo,
-    active: true,
-    data_source_type: 'ZENDESK',
-    requiresOAuth: true,
-    multiStep: true,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#dadfe8',
-        primaryButtonColor: '#000000',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-  {
-    id: 'ZOTERO',
-    subpath: 'zotero',
-    name: 'Zotero',
-    description: 'Lets your users connect their Zotero accounts to Carbon.',
-    announcementName: 'to connect Zotero',
-    icon: <img src={zoteroLogoPng} className="cc-w-7 cc-h-7" />, // <SiZotero className="cc-w-7 cc-h-7" />,
-    logo: ZoteroLogo,
-    active: true,
-    data_source_type: 'ZOTERO',
-    requiresOAuth: true,
-    multiStep: false,
-    supportsMultipleAccounts: false,
-    branding: {
-      header: {
-        primaryBackgroundColor: '#ffc4c9',
-        primaryButtonColor: '#CC2836',
-        primaryLabelColor: '#FFFFFF',
-        primaryTextColor: '#000000',
-        secondaryTextColor: '#000000',
-
-        // secondaryBackgroundColor: '#0061D5',
-        // secondaryButtonColor: '#143B83',
-      },
-    },
-  },
-];
+const DEFAULT_CHUNK_SIZE = 1500;
+const DEFAULT_OVERLAP_SIZE = 20;
 
 const CarbonContext = createContext();
 
@@ -356,6 +15,7 @@ export const CarbonProvider = ({
   enabledIntegrations,
   orgName,
   brandIcon,
+  loadingIconColor,
   environment,
   entryPoint,
   tags,
@@ -381,6 +41,17 @@ export const CarbonProvider = ({
   backButtonText,
   enableToasts,
   zIndex,
+  embeddingModel,
+  generateSparseVectors,
+  prependFilenameToChunks,
+  maxItemsPerChunk,
+  setPageAsBoundary,
+  showFilesTab,
+  useRequestIds,
+  requestIds,
+  setRequestIds,
+  useOcr,
+  parsePdfTablesWithOcr
 }) => {
   const [showModal, setShowModal] = useState(open);
   const [loading, setLoading] = useState(false);
@@ -408,7 +79,7 @@ export const CarbonProvider = ({
       const response = await fetch(url, {
         body: options.body,
         method: options.method,
-        headers: options.headers,
+        headers: options.headers
       });
 
       if (response.status === 401 && retry) {
@@ -428,7 +99,7 @@ export const CarbonProvider = ({
 
       return response;
     } catch (err) {
-      console.log(
+      console.error(
         `[CarbonContext.js] Error in authenticatedFetch [${url}]: `,
         err
       );
@@ -457,10 +128,11 @@ export const CarbonProvider = ({
       setLoading(false);
     } catch (err) {
       setError(true);
-      console.log('[CarbonContext.js] Error in fetchTokens: ', err);
+      console.error('[CarbonContext.js] Error in fetchTokens: ', err);
     }
   };
 
+  // todo - handle multiple data sources - this is used for white labeling
   const handleServiceOAuthFlow = async (service) => {
     try {
       // const alreadyActiveOAuth = getFlag(service?.data_source_type);
@@ -472,10 +144,30 @@ export const CarbonProvider = ({
       // }
 
       const chunkSizeValue =
-        service?.chunkSize || chunkSize || DEFAAULT_CHUNK_SIZE;
+        service?.chunkSize || chunkSize || DEFAULT_CHUNK_SIZE;
       const overlapSizeValue =
-        service?.overlapSize || overlapSize || DEFAAULT_OVERLAP_SIZE;
+        service?.overlapSize || overlapSize || DEFAULT_OVERLAP_SIZE;
       const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
+      const embeddingModelValue =
+        service?.embeddingModel || embeddingModel || null;
+      const generateSparseVectorsValue =
+        service?.generateSparseVectors || generateSparseVectors || false;
+      const prependFilenameToChunksValue =
+        service?.prependFilenameToChunks || prependFilenameToChunks || false;
+      const maxItemsPerChunkValue =
+        service?.maxItemsPerChunk || maxItemsPerChunk || false;
+      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
+      const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
+      const useOcrValue = service?.useOcr || useOcr || false;
+      const parsePdfTablesWithOcrValue = service?.parsePdfTablesWithOcr || parsePdfTablesWithOcr || false;
+      const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
+
+      let requestId = null
+      if (useRequestIds) {
+        requestId = generateRequestId(20)
+        setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
+      }
+
       const oAuthURLResponse = await authenticatedFetch(
         `${BASE_URL[environment]}/integrations/oauth_url`,
         {
@@ -490,6 +182,17 @@ export const CarbonProvider = ({
             chunk_size: chunkSizeValue,
             chunk_overlap: overlapSizeValue,
             skip_embedding_generation: skipEmbeddingGeneration,
+            embedding_model: embeddingModelValue,
+            generate_sparse_vectors: generateSparseVectorsValue,
+            prepend_filename_to_chunks: prependFilenameToChunksValue,
+            ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+            sync_files_on_connection: syncFilesOnConnection,
+            set_page_as_boundary: setPageAsBoundaryValue,
+            connecting_new_account: true,
+            ...(requestId && { request_id: requestId }),
+            use_ocr: useOcrValue,
+            parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue,
+            sync_source_items: syncSourceItems
           }),
         }
       );
@@ -498,7 +201,7 @@ export const CarbonProvider = ({
         // setFlag(service?.data_source_type, true);
         onSuccess({
           status: 200,
-          data: null,
+          data: { request_id: requestId },
           integration: service?.data_source_type,
           action: onSuccessEvents.INITIATE,
           event: onSuccessEvents.INITIATE,
@@ -508,14 +211,14 @@ export const CarbonProvider = ({
         window.open(oAuthURLResponseData.oauth_url, '_blank');
       }
     } catch (err) {
-      console.log('[CarbonContext.js] Error in handleServiceOAuthFlow: ', err);
+      console.error('[CarbonContext.js] Error in handleServiceOAuthFlow: ', err);
     }
   };
 
   useEffect(() => {
     let temp = [];
-    for (let i = 0; i < integrationsList.length; i++) {
-      const integration = integrationsList[i];
+    for (let i = 0; i < INTEGRATIONS_LIST.length; i++) {
+      const integration = INTEGRATIONS_LIST[i];
       const integrationOptions = enabledIntegrations.find(
         (enabledIntegration) =>
           enabledIntegration.id === integration.id && integration.active
@@ -528,7 +231,7 @@ export const CarbonProvider = ({
     if (entryPoint) {
       const obj = temp.find((integration) => integration.id === entryPoint);
       if (!obj) {
-        const isIntegrationAvailable = integrationsList.find(
+        const isIntegrationAvailable = INTEGRATIONS_LIST.find(
           (integration) => integration.id === entryPoint
         );
         if (isIntegrationAvailable)
@@ -557,6 +260,7 @@ export const CarbonProvider = ({
     enabledIntegrations,
     orgName,
     brandIcon,
+    loadingIconColor,
     environment,
     entryPoint,
     tags,
@@ -591,6 +295,18 @@ export const CarbonProvider = ({
     backButtonText,
     enableToasts,
     zIndex,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk,
+    setPageAsBoundary,
+    showFilesTab,
+    setRequestIds,
+    requestIds,
+    useRequestIds,
+    useOcr,
+    parsePdfTablesWithOcr,
+    loading
   };
 
   return (

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { darkenColor } from '../utils/helpers';
+import { darkenColor, generateRequestId } from '../utils/helpers';
 
 import * as Dialog from '@radix-ui/react-dialog';
 import { HiArrowLeft, HiUpload, HiInformationCircle } from 'react-icons/hi';
@@ -8,7 +8,7 @@ import { SiConfluence } from 'react-icons/si';
 import { toast } from 'react-toastify';
 
 import '../index.css';
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { BASE_URL, onSuccessEvents, SYNC_FILES_ON_CONNECT, SYNC_SOURCE_ITEMS } from '../constants';
 import { LuLoader2 } from 'react-icons/lu';
 import { useCarbon } from '../contexts/CarbonContext';
 
@@ -38,14 +38,18 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
     authenticatedFetch,
     secondaryBackgroundColor,
     secondaryTextColor,
-    setActiveStep,
-    entryPoint,
     environment,
     tags,
     onSuccess,
     onError,
-    primaryBackgroundColor,
-    primaryTextColor,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk,
+    setPageAsBoundary,
+    useRequestIds,
+    requestIds,
+    setRequestIds
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -54,12 +58,26 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         toast.error('Please enter a subdomain.');
         return;
       }
+      const oauthWindow = window.open('', '_blank');
+      oauthWindow.document.write('Loading...');
+
       setIsLoading(true);
       const chunkSize =
         service?.chunkSize || topLevelChunkSize || defaultChunkSize;
       const overlapSize =
         service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
       const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
+      const embeddingModelValue =
+        service?.embeddingModel || embeddingModel || null;
+      const generateSparseVectorsValue =
+        service?.generateSparseVectors || generateSparseVectors || false;
+      const prependFilenameToChunksValue =
+        service?.prependFilenameToChunks || prependFilenameToChunks || false;
+      const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
+      const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
+      const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS
+      const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
+
       const subdomain = confluenceSubdomain
         .replace('https://www.', '')
         .replace('http://www.', '')
@@ -69,6 +87,12 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         .replace(/\/$/, '')
         .trim();
 
+      let requestId = null
+      if (useRequestIds) {
+        requestId = generateRequestId(20)
+        setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
+      }
+
       const requestObject = {
         tags: tags,
         service: service?.data_source_type,
@@ -76,6 +100,15 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         chunk_overlap: overlapSize,
         skip_embedding_generation: skipEmbeddingGeneration,
         confluence_subdomain: subdomain,
+        embedding_model: embeddingModelValue,
+        generate_sparse_vectors: generateSparseVectorsValue,
+        prepend_filename_to_chunks: prependFilenameToChunksValue,
+        ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+        sync_files_on_connection: syncFilesOnConnection,
+        connecting_new_account: true,
+        set_page_as_boundary: setPageAsBoundaryValue,
+        ...(requestId && { request_id: requestId }),
+        sync_source_items: syncSourceItems
       };
 
       const response = await authenticatedFetch(
@@ -90,18 +123,21 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         }
       );
 
+      const oAuthURLResponseData = await response.json();
+
       if (response.status === 200) {
         onSuccess({
           status: 200,
-          data: null,
+          data: { request_id: requestId },
           action: onSuccessEvents.INITIATE,
           event: onSuccessEvents.INITIATE,
           integration: 'CONFULENCE',
         });
-        setIsLoading(false);
-        const oAuthURLResponseData = await response.json();
-        window.open(oAuthURLResponseData.oauth_url, '_blank');
+        oauthWindow.location.href = oAuthURLResponseData.oauth_url;
+      } else {
+        oauthWindow.document.body.innerHTML = oAuthURLResponseData.detail;
       }
+      setIsLoading(false)
     } catch (error) {
       toast.error('Error getting oAuth URL. Please try again.');
       setIsLoading(false);

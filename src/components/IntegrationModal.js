@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
+import { IoClose } from "react-icons/io5";
 import '../index.css';
 
 import { HiPlus } from 'react-icons/hi';
@@ -7,8 +8,9 @@ import CarbonAnnouncement from '../components/CarbonAnnouncement';
 import ThirdPartyList from '../components/ThirdPartyList';
 import FileUpload from '../components/FileUpload';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-import { BASE_URL, onSuccessEvents } from '../constants';
+import { BASE_URL, onSuccessEvents, THIRD_PARTY_CONNECTORS } from '../constants';
 import { useCarbon } from '../contexts/CarbonContext';
 import WebScraper from '../components/WebScraper';
 import ZendeskScreen from './ZendeskScreen';
@@ -34,10 +36,12 @@ const IntegrationModal = ({
   setActiveStep,
   zIndex = 1000,
   enableToasts = true,
+  requestIds
 }) => {
   const [activeIntegrations, setActiveIntegrations] = useState([]);
 
   const activeIntegrationsRef = useRef(activeIntegrations);
+  const requestIdsRef = useRef(requestIds);
   const firstFetchCompletedRef = useRef(false);
 
   const {
@@ -48,6 +52,7 @@ const IntegrationModal = ({
     alwaysOpen,
     showModal,
     manageModalOpenState,
+    setShowModal
   } = useCarbon();
 
   const findModifications = (newIntegrations, oldIntegrations) => {
@@ -55,11 +60,13 @@ const IntegrationModal = ({
     try {
       for (let i = 0; i < newIntegrations.length; i++) {
         const newIntegration = newIntegrations[i];
+        const requestId = requestIdsRef.current ?
+          requestIdsRef.current[newIntegration.data_source_type] || null :
+          null
 
         const oldIntegration = oldIntegrations.find(
           (oldIntegration) => oldIntegration.id === newIntegration.id
         );
-
         if (!oldIntegration) {
           const onSuccessObject = {
             status: 200,
@@ -68,52 +75,12 @@ const IntegrationModal = ({
             event: onSuccessEvents.ADD,
             data: {
               data_source_external_id: newIntegration.data_source_external_id,
-              files: null,
               sync_status: newIntegration.sync_status,
+              request_id: requestId
             },
           };
 
           response.push(onSuccessObject);
-
-          // TODO: Remove this once we have the BE code ready
-          // START
-          const requestBody = {
-            data_source_id: newIntegration.id,
-          };
-
-          authenticatedFetch(
-            `${BASE_URL[environment]}/integrations/items/sync`,
-            {
-              method: 'POST',
-              headers: {
-                Authorization: `Token ${accessToken}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestBody),
-            }
-          );
-          // END
-
-          if (
-            newIntegration?.data_source_type === 'NOTION' ||
-            newIntegration?.data_source_type === 'INTERCOM'
-          ) {
-            // setFlag(newIntegration?.data_source_type, false);
-            const onSuccessObject = {
-              status: 200,
-              integration: newIntegration.data_source_type,
-              action: onSuccessEvents.UPDATE,
-              event: onSuccessEvents.UPDATE,
-              data: {
-                data_source_external_id: newIntegration.data_source_external_id,
-                files: newIntegration?.synced_files || [],
-                sync_status: newIntegration.sync_status,
-              },
-            };
-            response.push(onSuccessObject);
-          }
-          // setFlag(newIntegration?.data_source_type, false);
-          // continue;
         } else if (
           oldIntegration?.last_synced_at !== newIntegration?.last_synced_at &&
           newIntegration?.last_sync_action === 'CANCEL'
@@ -125,92 +92,49 @@ const IntegrationModal = ({
             event: onSuccessEvents.CANCEL,
             data: {
               data_source_external_id: newIntegration.data_source_external_id,
-              files: null, //newIntegration?.synced_files || [],
               sync_status: newIntegration.sync_status,
             },
           };
-          // setFlag(newIntegration?.data_source_type, false);
           response.push(onSuccessObject);
-          continue;
         } else if (
           oldIntegration?.last_synced_at !== newIntegration?.last_synced_at &&
           newIntegration?.last_sync_action === 'UPDATE'
         ) {
-          const newFiles = newIntegration?.synced_files || [];
-          const oldFiles = oldIntegration?.synced_files || [];
-
-          const additions = [];
-          const deletions = [];
-          const reselections = [];
-          for (let j = 0; j < newFiles.length; j++) {
-            const newFileObject = newFiles[j];
-            const oldFileObject = oldFiles.find(
-              (oldFile) => oldFile.id === newFileObject.id
-            );
-
-            if (!oldFileObject) {
-              additions.push({ ...newFileObject, action: onSuccessEvents.ADD });
-              continue;
-            }
-            if (oldFileObject.updated_at !== newFileObject.updated_at) {
-              reselections.push({
-                ...newFileObject,
-                action: onSuccessEvents.UPDATE,
-              });
-            }
-          }
-
-          for (let j = 0; j < oldFiles.length; j++) {
-            const oldFileObject = oldFiles[j];
-            const newFileObject = newFiles.find(
-              (newFile) => newFile.id === oldFileObject.id
-            );
-
-            if (!newFileObject) {
-              deletions.push({
-                ...oldFileObject,
-                action: onSuccessEvents.REMOVE,
-              });
-            }
-          }
-
-          const fileModifications = [
-            ...additions,
-            ...reselections,
-            ...deletions,
-          ];
-
-          if (fileModifications.length > 0) {
-            const onSuccessObject = {
-              status: 200,
-              integration: newIntegration.data_source_type,
-              action: onSuccessEvents.UPDATE,
-              event: onSuccessEvents.UPDATE,
-              data: {
-                data_source_external_id: newIntegration.data_source_external_id,
-                files: fileModifications,
-                sync_status: newIntegration.sync_status,
-              },
-            };
-            // setFlag(newIntegration?.data_source_type, false);
-            response.push(onSuccessObject);
-          }
+          const requestId = requestIdsRef.current ?
+            requestIdsRef.current[newIntegration.data_source_type] || null :
+            null
+          const filesSynced = oldIntegration?.files_synced_at !== newIntegration?.files_synced_at
+          const onSuccessObject = {
+            status: 200,
+            integration: newIntegration.data_source_type,
+            action: onSuccessEvents.UPDATE,
+            event: onSuccessEvents.UPDATE,
+            data: {
+              data_source_external_id: newIntegration.data_source_external_id,
+              sync_status: newIntegration.sync_status,
+              request_id: requestId,
+              files_synced: filesSynced
+            },
+          };
+          response.push(onSuccessObject);
         }
       }
 
       return response;
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const fetchUserIntegrationsHelper = async () => {
     try {
       const userIntegrationsResponse = await authenticatedFetch(
-        `${BASE_URL[environment]}/integrations/`,
+        `${BASE_URL[environment]}/integrations/?${new URLSearchParams({ "include_files": false })}`,
         {
           method: 'GET',
           headers: {
             Authorization: `Token ${accessToken}`,
-          },
+          }
         }
       );
 
@@ -237,7 +161,7 @@ const IntegrationModal = ({
         return;
       }
     } catch (error) {
-      // console.log(error);
+      // console.error(error);
     }
   };
 
@@ -245,17 +169,21 @@ const IntegrationModal = ({
     activeIntegrationsRef.current = activeIntegrations;
   }, [activeIntegrations]);
 
+  useEffect(() => {
+    requestIdsRef.current = requestIds
+  }, [requestIds])
+
   const fetchUserIntegrations = async () => {
     try {
       await fetchUserIntegrationsHelper();
-    } catch (error) {}
+    } catch (error) { }
   };
 
   useEffect(() => {
     if (accessToken && showModal) {
       fetchUserIntegrations();
-      // Then set up the interval to call it every 5 seconds
-      const intervalId = setInterval(fetchUserIntegrations, 5000); // 5000 ms = 5 s
+      // Then set up the interval to call it every 7.5 seconds
+      const intervalId = setInterval(fetchUserIntegrations, 7500);
       // Make sure to clear the interval when the component unmounts
       return () => clearInterval(intervalId);
     }
@@ -280,19 +208,35 @@ const IntegrationModal = ({
         )}
       </Dialog.Trigger>
 
+
       <Dialog.Portal>
         <Dialog.Overlay
           className="cc-bg-blackA9 data-[state=open]:cc-animate-overlayShow cc-fixed cc-inset-0 cc-bg-black/30"
           style={{ zIndex: zIndex - 1 }}
         />
         <Dialog.Content
-          className={`cc-flex cc-flex-col data-[state=open]:cc-animate-contentShow cc-fixed cc-top-[50%] cc-left-[50%] cc-translate-x-[-50%] cc-translate-y-[-50%] cc-rounded-[6px] cc-bg-white focus:cc-outline-none ${
-            activeStep === 0
-              ? 'cc-w-full cc-h-full sm:cc-w-[350px] sm:cc-h-[600px]'
-              : 'cc-w-full cc-h-full sm:cc-w-1/2 sm:cc-h-2/3 sm:cc-max-w-2xl'
-          }`}
+          className={`cc-flex cc-flex-col data-[state=open]:cc-animate-contentShow cc-fixed cc-top-[50%] cc-left-[50%] cc-translate-x-[-50%] cc-translate-y-[-50%] cc-rounded-[6px] cc-bg-white focus:cc-outline-none ${activeStep === 0
+            ? 'cc-w-full cc-h-full sm:cc-w-[350px] sm:cc-h-[600px]'
+            : 'cc-w-full cc-h-full sm:cc-w-1/2 sm:cc-h-2/3 sm:cc-max-w-2xl'
+            }`}
           style={{ zIndex: zIndex }}
         >
+          {!alwaysOpen ? <Dialog.Close asChild style={{ zIndex: zIndex + 1 }}>
+            <button aria-label="Close" style={{
+              "font-family": "inherit",
+              "height": "25px",
+              "width": "25px",
+              "display": "inline-flex",
+              "align-items": "center",
+              "justify-content": "center",
+              "position": "absolute",
+              "top": "15px",
+              "right": "15px",
+              "cursor": "pointer"
+            }} className="cc-text-gray-400">
+              <IoClose style={{ height: "1.5rem", width: "1.5rem" }} />
+            </button>
+          </Dialog.Close> : null}
           {activeStep === 0 && (
             <CarbonAnnouncement
               setActiveStep={setActiveStep}
@@ -306,20 +250,7 @@ const IntegrationModal = ({
             />
           )}
 
-          {[
-            'BOX',
-            'CONFLUENCE',
-            'DROPBOX',
-            'GOOGLE_DRIVE',
-            'INTERCOM',
-            // 'LOCAL_FILES',
-            'NOTION',
-            'ONEDRIVE',
-            'SHAREPOINT',
-            // 'WEB_SCRAPER',
-            'ZENDESK',
-            'ZOTERO',
-          ].includes(activeStep) && (
+          {THIRD_PARTY_CONNECTORS.includes(activeStep) && (
             <ThirdPartyHome
               activeIntegrations={activeIntegrations}
               integrationName={activeStep}

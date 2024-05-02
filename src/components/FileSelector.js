@@ -26,8 +26,11 @@ import {
   BsFiletypeXlsx,
   BsMarkdownFill,
 } from 'react-icons/bs';
+import { generateRequestId } from "../utils/helpers";
 
-const FileSelector = ({ account, searchQuery, files }) => {
+const PER_PAGE = 25
+
+const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
   const {
     accessToken,
     processedIntegrations,
@@ -38,6 +41,16 @@ const FileSelector = ({ account, searchQuery, files }) => {
     defaultChunkSize,
     defaultOverlapSize,
     tags,
+    embeddingModel,
+    generateSparseVectors,
+    prependFilenameToChunks,
+    maxItemsPerChunk,
+    setPageAsBoundary,
+    useRequestIds,
+    requestIds,
+    setRequestIds,
+    useOcr,
+    parsePdfTablesWithOcr
   } = useCarbon();
 
   // This holds the loading state of the files data.
@@ -48,7 +61,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
   // This holds the currently selected files. Used for breadcrumb.
   const [pwd, setPwd] = useState([
-    { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null },
+    { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null, accountId: null, filePickerRefreshes: filePickerRefreshes },
   ]);
 
   // This holds the currently viewing folder's id. The parent id of the files.
@@ -87,9 +100,6 @@ const FileSelector = ({ account, searchQuery, files }) => {
   // Selected files list. This is the list of files that the user has selected.
   const [selectedFilesList, setSelectedFilesList] = useState([]);
 
-  // Used to avoid double fetches when the component mounts.
-  const [shouldFetch, setShouldFetch] = useState(false);
-
   // How the file selector works:
   // 1. We fetch the files data from the API and store it in the filesMasterList.
   // 2. We set the activeFilesList to the filesMasterList.
@@ -122,40 +132,34 @@ const FileSelector = ({ account, searchQuery, files }) => {
   useEffect(() => {
     if (pwd.length > 0) {
       const lastPwd = pwd[pwd.length - 1];
-
-      // We update the filesMasterList with the files data in this method.
-      // TODO: Add/Update offset and hasMoreFiles  to fileMasterList as well.
-      setOffset(lastPwd.offset);
-      setHasMoreFiles(lastPwd.hasMoreFiles);
-      setParentId(lastPwd.parentId);
-
-      if (hasMoreFiles && shouldFetch) {
-        const updateLoader = activeFilesList.length === 0;
-        if (updateLoader) {
-          setIsLoading(true);
+      if (lastPwd.accountId) {
+        // We update the filesMasterList with the files data in this method.
+        // TODO: Add/Update offset and hasMoreFiles  to fileMasterList as well.
+        setOffset(lastPwd.offset);
+        setHasMoreFiles(lastPwd.hasMoreFiles);
+        setParentId(lastPwd.parentId);
+        if (hasMoreFiles) {
+          setIsLoading(true)
+          fetchUserFilesMetaData(lastPwd.id, lastPwd.offset).then(() => setIsLoading(false))
         }
-        fetchUserFilesMetaData(lastPwd.id, lastPwd.offset);
-        if (updateLoader) {
-          setIsLoading(false);
-        }
+
+        updateFileSelectorViewData();
       }
-
-      updateFileSelectorViewData();
     }
-  }, [pwd]);
+  }, [JSON.stringify(pwd)]);
 
   useEffect(() => {
-    if (!account) return;
+    if (!account || account?.sync_status !== 'READY') return;
 
     setFilesMasterList([]);
     setHasMoreFiles(true);
     setOffset(0);
+    // as a temp measure we are storing some additional data in pwd when it changes to force complete refetch
     setPwd([
-      { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null },
+      { id: null, name: '', offset: 0, hasMoreFiles: true, parentId: null, accountId: account?.id, filePickerRefreshes: filePickerRefreshes, lastSync: account?.source_items_synced_at },
     ]);
     setSelectedFilesList([]);
-    setShouldFetch(true);
-  }, [account]);
+  }, [account?.id, account?.source_items_synced_at, filePickerRefreshes]);
 
   // Once the files data is fetched, we set the active files list to the master list.
   // We will also set the active files list to the selected folder's list using the master file data and parent id.
@@ -193,6 +197,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
       data_source_id: account?.id,
       pagination: {
         offset: offset,
+        limit: PER_PAGE
       },
     };
 
@@ -275,7 +280,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
             );
 
             if (offset === 0)
-              currentLevel[folderIndex].children = [...newChildren];
+              currentLevel[folderIndex].children = [...userFiles];
             else
               currentLevel[folderIndex].children = [
                 ...currentLevel[folderIndex].children,
@@ -297,6 +302,22 @@ const FileSelector = ({ account, searchQuery, files }) => {
     const overlapSize =
       service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
     const skipEmbeddingGeneration = service?.skipEmbeddingGeneration || false;
+    const embeddingModelValue =
+      service?.embeddingModel || embeddingModel || null;
+    const generateSparseVectorsValue =
+      service?.generateSparseVectors || generateSparseVectors || false;
+    const prependFilenameToChunksValue =
+      service?.prependFilenameToChunks || prependFilenameToChunks || false;
+    const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
+    const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
+    const useOcrValue = service?.useOcr || useOcr || false;
+    const parsePdfTablesWithOcrValue = service?.parsePdfTablesWithOcr || parsePdfTablesWithOcr || false;
+
+    let requestId = null
+    if (useRequestIds) {
+      requestId = generateRequestId(20)
+      setRequestIds({ ...requestIds, [service?.data_source_type]: requestId })
+    }
 
     const requestBody = {
       data_source_id: account?.id,
@@ -305,6 +326,14 @@ const FileSelector = ({ account, searchQuery, files }) => {
       chunk_size: chunkSize,
       chunk_overlap: overlapSize,
       skip_embedding_generation: skipEmbeddingGeneration,
+      embedding_model: embeddingModelValue,
+      generate_sparse_vectors: generateSparseVectorsValue,
+      prepend_filename_to_chunks: prependFilenameToChunksValue,
+      ...(maxItemsPerChunkValue && { max_items_per_chunk: maxItemsPerChunkValue }),
+      set_page_as_boundary: setPageAsBoundaryValue,
+      ...(requestId && { request_id: requestId }),
+      use_ocr: useOcrValue,
+      parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue
     };
 
     const syncFilesResponse = await authenticatedFetch(
@@ -497,9 +526,9 @@ const FileSelector = ({ account, searchQuery, files }) => {
     }
 
     return (
-      <div className="cc-flex cc-items-center cc-space-x-2 cc-text-left cc-text-xs cc-font-normal cc-py-1 cc-capitalize cc-px-1">
+      <div className="cc-flex cc-items-center cc-space-x-2 cc-text-left cc-text-xs cc-font-normal cc-py-1 cc-px-1">
         <span className="cc-flex cc-items-center cc-space-x-2">{icon}</span>
-        <span>{fileNameWithoutExtension}</span>
+        <span>{fileName}</span>
       </div>
     );
   };
@@ -557,6 +586,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
           offset: 0,
           hasMoreFiles: true,
           parentId: lastPwd['id'],
+          accountId: account?.id
         });
 
         return pwdCopy;
@@ -577,17 +607,15 @@ const FileSelector = ({ account, searchQuery, files }) => {
 
         <div className="cc-flex cc-flex-row cc-space-x-2">
           <button
-            className={`cc-justify-end ${
-              selectedFilesList == 0 ? 'cc-hidden' : ''
-            } cc-flex cc-items-center cc-space-x-2 cc-text-xs cc-font-semibold cc-text-blue-500 cc-py-1 cc-px-2 cc-rounded-full cc-border cc-border-blue-500 cc-bg-blue-50 cc-transition cc-duration-150 cc-ease-in-out hover:cc-bg-blue-100`}
+            className={`cc-justify-end ${selectedFilesList == 0 ? 'cc-hidden' : ''
+              } cc-flex cc-items-center cc-space-x-2 cc-text-xs cc-font-semibold cc-text-blue-500 cc-py-1 cc-px-2 cc-rounded-full cc-border cc-border-blue-500 cc-bg-blue-50 cc-transition cc-duration-150 cc-ease-in-out hover:cc-bg-blue-100`}
             onClick={syncSelectedFiles}
           >
             Sync {selectedFilesList.length} Files
           </button>
           <button
-            className={`cc-justify-end ${
-              selectedFilesList == 0 ? 'cc-hidden' : ''
-            } cc-flex cc-items-center cc-space-x-2 cc-text-xs cc-font-semibold cc-text-red-500 cc-py-1 cc-px-2 cc-rounded-full cc-border cc-border-red-500 cc-bg-red-50 cc-transition cc-duration-150 cc-ease-in-out hover:cc-bg-red-100`}
+            className={`cc-justify-end ${selectedFilesList == 0 ? 'cc-hidden' : ''
+              } cc-flex cc-items-center cc-space-x-2 cc-text-xs cc-font-semibold cc-text-red-500 cc-py-1 cc-px-2 cc-rounded-full cc-border cc-border-red-500 cc-bg-red-50 cc-transition cc-duration-150 cc-ease-in-out hover:cc-bg-red-100`}
             onClick={() => setSelectedFilesList([])}
           >
             Clear Selection
@@ -601,7 +629,15 @@ const FileSelector = ({ account, searchQuery, files }) => {
         </div>
       ) :  */}
 
-      {activeFilesList.length === 0 ? (
+      {account?.sync_status == 'SYNCING' || account?.sync_status == 'QUEUED_FOR_SYNC' ? (
+        <div className="cc-flex cc-flex-col cc-grow cc-items-center cc-justify-center">
+          Your content is being synced.
+        </div>
+      ) : isLoading ? (
+        <div className="cc-flex cc-flex-col cc-grow cc-items-center cc-justify-center">
+          <div className="cc-spinner cc-w-10 cc-h-10 cc-border-2 cc-border-t-4 cc-border-gray-200 cc-rounded-full cc-animate-spin"></div>
+        </div>
+      ) : activeFilesList.length === 0 ? (
         <div className="cc-flex cc-flex-col cc-items-center cc-justify-center cc-h-full">
           <h1 className="cc-text-lg cc-font-medium cc-text-gray-500">
             No files found!
@@ -615,6 +651,7 @@ const FileSelector = ({ account, searchQuery, files }) => {
             // Check which list to be used here!
             hasMoreFiles ? filesMasterList.length + 1 : filesMasterList.length
           }
+          threshold={20}
         >
           {({ onRowsRendered, registerChild }) => (
             <AutoSizer>

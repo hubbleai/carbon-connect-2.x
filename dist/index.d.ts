@@ -1,5 +1,5 @@
-import React, { ReactNode } from 'react';
-import './index.css';
+import React, { ReactNode } from "react";
+import "./index.css";
 export declare enum ActionType {
     INITIATE = "INITIATE",
     ADD = "ADD",
@@ -18,7 +18,14 @@ export declare enum IntegrationName {
     ZENDESK = "ZENDESK",
     SHAREPOINT = "SHAREPOINT",
     ZOTERO = "ZOTERO",
-    CONFLUENCE = "CONFLUENCE"
+    CONFLUENCE = "CONFLUENCE",
+    S3 = "S3",
+    GMAIL = "GMAIL",
+    FRESHDESK = "FRESHDESK",
+    GITBOOK = "GITBOOK",
+    OUTLOOK = "OUTLOOK",
+    SALESFORCE = "SALESFORCE",
+    GITHUB = "GITHUB"
 }
 export declare enum SyncStatus {
     READY = "READY",
@@ -26,10 +33,20 @@ export declare enum SyncStatus {
     SYNCING = "SYNCING",
     SYNC_ERROR = "SYNC_ERROR"
 }
+export declare enum FilePickerMode {
+    FILES = "FILES",
+    FOLDERS = "FOLDERS",
+    BOTH = "BOTH"
+}
 export interface FileType {
     extension: string;
     chunkSize?: number;
     overlapSize?: number;
+    skipEmbeddingGeneration?: boolean;
+    setPageAsBoundary?: boolean;
+    useOcr?: boolean;
+    generateSparseVectors?: boolean;
+    parsePdfTablesWithOcr?: boolean;
 }
 export interface BaseIntegration {
     id: IntegrationName;
@@ -37,16 +54,30 @@ export interface BaseIntegration {
     overlapSize?: number;
     skipEmbeddingGeneration?: boolean;
     enableAutoSync?: boolean;
+    generateSparseVectors?: boolean;
+    prependFilenameToChunks?: boolean;
+    maxItemsPerChunk?: number;
+    syncFilesOnConnection?: boolean;
+    syncSourceItems?: boolean;
+    setPageAsBoundary?: boolean;
+    showFilesTab?: boolean;
+    useOcr?: boolean;
+    parsePdfTablesWithOcr?: boolean;
 }
 export interface LocalFilesIntegration extends BaseIntegration {
     maxFileSize: number;
     allowMultipleFiles: boolean;
     maxFilesCount?: number;
     allowedFileTypes?: FileType[];
+    filePickerMode?: FilePickerMode;
 }
 export interface WebScraperIntegration extends BaseIntegration {
     recursionDepth?: number;
     maxPagesToScrape?: number;
+    htmlTagsToSkip?: string[];
+    cssClassesToSkip?: string[];
+    cssSelectorsToSkip?: string[];
+    sitemapEnabled?: boolean;
 }
 export type Integration = LocalFilesIntegration | WebScraperIntegration | BaseIntegration;
 export interface LocalFile {
@@ -92,6 +123,7 @@ export interface OnSuccessData {
         data_source_external_id: string | null;
         sync_status: string | null;
         files: LocalFile[] | WebScraper[] | OnSuccessDataFileObject[] | null;
+        request_id: string | null;
     } | null;
     action: ActionType;
     event: ActionType;
@@ -105,9 +137,26 @@ export interface OnErrorData {
     data?: object;
 }
 export type TagValue = string | number | string[] | number[];
+export declare enum EmbeddingGenerators {
+    OPENAI = "OPENAI",
+    AZURE_OPENAI = "AZURE_OPENAI",
+    AZURE_ADA_LARGE_256 = "AZURE_ADA_LARGE_256",
+    AZURE_ADA_LARGE_1024 = "AZURE_ADA_LARGE_1024",
+    AZURE_ADA_LARGE_3072 = "AZURE_ADA_LARGE_3072",
+    AZURE_ADA_SMALL_512 = "AZURE_ADA_SMALL_512",
+    AZURE_ADA_SMALL_1536 = "AZURE_ADA_SMALL_1536",
+    COHERE_MULTILINGUAL_V3 = "COHERE_MULTILINGUAL_V3",
+    VERTEX_MULTIMODAL = "VERTEX_MULTIMODAL",
+    OPENAI_ADA_LARGE_256 = "OPENAI_ADA_LARGE_256",
+    OPENAI_ADA_LARGE_1024 = "OPENAI_ADA_LARGE_1024",
+    OPENAI_ADA_LARGE_3072 = "OPENAI_ADA_LARGE_3072",
+    OPENAI_ADA_SMALL_512 = "OPENAI_ADA_SMALL_512",
+    OPENAI_ADA_SMALL_1536 = "OPENAI_ADA_SMALL_1536"
+}
 export interface CarbonConnectProps {
     orgName: string;
     brandIcon: string;
+    loadingIconColor: string;
     children?: ReactNode;
     tokenFetcher?: () => Promise<{
         access_token: string;
@@ -135,6 +184,15 @@ export interface CarbonConnectProps {
     backButtonText?: string;
     zIndex?: number;
     enableToasts?: boolean;
+    embeddingModel?: EmbeddingGenerators;
+    generateSparseVectors?: boolean;
+    prependFilenameToChunks?: boolean;
+    maxItemsPerChunk?: number;
+    setPageAsBoundary?: boolean;
+    showFilesTab?: boolean;
+    useRequestIds?: boolean;
+    useOcr?: boolean;
+    parsePdfTablesWithOcr?: boolean;
 }
 declare const CarbonConnect: React.FC<CarbonConnectProps>;
 export { CarbonConnect };
