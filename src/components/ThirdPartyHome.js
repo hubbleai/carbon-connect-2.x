@@ -186,6 +186,7 @@ const ThirdPartyHome = ({
       setSortedFiles([])
       setFilteredFiles([])
       setFilesLoading(true)
+      setHasMoreFiles(true)
       loadInitialData().then(() => setFilesLoading(false));
     }
   }, [selectedDataSource?.id, showFileSelector, filesTabRefreshes]);
@@ -350,17 +351,10 @@ const ThirdPartyHome = ({
   };
 
   const performFileResync = async (rowData) => {
-    const chunkSize =
-      service?.chunkSize || topLevelChunkSize || defaultChunkSize;
-    const overlapSize =
-      service?.overlapSize || topLevelOverlapSize || defaultOverlapSize;
-
     const resyncFileResponse = await resyncFile({
       accessToken: accessToken,
       fileId: rowData.id,
-      environment: environment,
-      chunkSize: chunkSize,
-      chunkOverlap: overlapSize,
+      environment: environment
     });
 
     if (resyncFileResponse.status === 200) {
