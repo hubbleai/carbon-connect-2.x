@@ -122,7 +122,7 @@ const IntegrationModal = ({
 
       return response;
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -161,7 +161,7 @@ const IntegrationModal = ({
         return;
       }
     } catch (error) {
-      // console.log(error);
+      // console.error(error);
     }
   };
 

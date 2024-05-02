@@ -99,7 +99,7 @@ export const CarbonProvider = ({
 
       return response;
     } catch (err) {
-      console.log(
+      console.error(
         `[CarbonContext.js] Error in authenticatedFetch [${url}]: `,
         err
       );
@@ -128,7 +128,7 @@ export const CarbonProvider = ({
       setLoading(false);
     } catch (err) {
       setError(true);
-      console.log('[CarbonContext.js] Error in fetchTokens: ', err);
+      console.error('[CarbonContext.js] Error in fetchTokens: ', err);
     }
   };
 
@@ -211,7 +211,7 @@ export const CarbonProvider = ({
         window.open(oAuthURLResponseData.oauth_url, '_blank');
       }
     } catch (err) {
-      console.log('[CarbonContext.js] Error in handleServiceOAuthFlow: ', err);
+      console.error('[CarbonContext.js] Error in handleServiceOAuthFlow: ', err);
     }
   };
 

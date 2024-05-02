@@ -140,11 +140,9 @@ const ThirdPartyHome = ({
   }, [processedIntegrations]);
 
   useEffect(() => {
-    console.log(pauseDataSourceSelection)
     const connected = activeIntegrations.filter(
       (integration) => integration.data_source_type === integrationName
     );
-    console.log(connected?.source_items_synced_at, selectedDataSource?.source_items_synced_at)
     if (pauseDataSourceSelection) return
     setConnected(connected);
 
@@ -572,7 +570,7 @@ const ThirdPartyHome = ({
         oauthWindow.document.body.innerHTML = oAuthURLResponseData.detail
       }
     } catch (err) {
-      console.log('[ThirdPartyHome.js] Error in sending Oauth request: ', err);
+      console.error('[ThirdPartyHome.js] Error in sending Oauth request: ', err);
     }
   };
 

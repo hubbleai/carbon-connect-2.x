@@ -45,7 +45,6 @@ function GitbookScreen({ buttonColor, labelColor }) {
 		requestIds,
 		setRequestIds
 	} = useCarbon();
-	console.log(service?.syncSourceItems)
 
 	const connectGitbook = async () => {
 		try {

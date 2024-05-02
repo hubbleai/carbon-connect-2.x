@@ -141,7 +141,7 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 			}
 			setIsLoading(false)
 		} catch (error) {
-			console.log(error)
+			console.error(error)
 			toast.error('Error connecting your Freshdesk. Please try again.');
 			setIsLoading(false);
 			onError({

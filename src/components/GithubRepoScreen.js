@@ -173,7 +173,7 @@ function GithubRepoScreen({ username, activeIntegrations, setPauseDataSourceSele
 				toast.error(`Unable to sync your repos, ${res.detail}`)
 			}
 		} catch (e) {
-			console.log(e)
+			console.error(e)
 			toast.error("Unable to sync your repos")
 		}
 	}
