@@ -443,13 +443,6 @@ const LocalFilesScreen = ({
 			<div className="cc-grow cc-flex cc-flex-col cc-py-2 cc-px-4 cc-space-y-4">
 				{(
 					<div className="cc-flex-col cc-flex md:cc-translate-y-4 cc-text-sm cc-h-full cc-mb-4">
-						<div className="cc-flex cc-border-b cc-mb-0">
-							<button
-								className={`cc-flex cc-py-2 cc-px-2 cc-text-center cc-cursor-pointer cc-border-b-4 cc-font-bold cc-items-left cc-space-x-2 cc-justify-center cc-w-fit-content`}
-							>
-								Files
-							</button>
-						</div>
 
 						<div className="cc-w-full cc-flex cc-flex-col cc-space-y-2 cc-border-t cc-h-full cc-py-2">
 							{/* Common Action Bar */}
