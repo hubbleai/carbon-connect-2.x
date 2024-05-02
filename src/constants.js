@@ -57,3 +57,31 @@ export const SYNC_URL_BASED_CONNECTORS = [
 export const FILE_PICKER_BASED_CONNECTORS = ['GITHUB']
 
 export const PICKER_OR_URL_BASED_CONNECTORS = ['CONFLUENCE', 'SALESFORCE']
+
+export const LOCAL_FILE_TYPES = [
+  "TEXT",
+  "CSV",
+  "TSV",
+  "PDF",
+  "DOCX",
+  "PPTX",
+  "XLSX",
+  "MD",
+  "RTF",
+  "JSON",
+  "RAW_TEXT",
+  "JPG",
+  "JPEG",
+  "PNG",
+  "MP3",
+  "MP4",
+  "MP2",
+  "AAC",
+  "WAV",
+  "FLAC",
+  "PCM",
+  "M4A",
+  "OGG",
+  "OPUS",
+  "WEBM"
+]
