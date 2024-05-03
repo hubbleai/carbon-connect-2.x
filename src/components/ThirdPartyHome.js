@@ -787,20 +787,29 @@ const ThirdPartyHome = ({
               <div className="cc-w-full cc-flex cc-flex-col cc-space-y-2 cc-border-t cc-h-full cc-py-2">
                 {/* Common Action Bar */}
                 <div className="cc-flex cc-flex-row cc-h-6 cc-items-center cc-space-x-2 cc-w-full cc-px-2 cc-my-2 cc-justify-between">
-                  {/* Search Input */}
-                  <label class="cc-relative cc-block cc-w-64  cc-flex cc-flex-row">
-                    {/* <span class="sr-only">Search</span> */}
-                    <span class="cc-absolute cc-inset-y-0 cc-left-0 cc-flex cc-items-center cc-pl-2">
-                      <HiSearch className="cc-w-4 cc-h-4" />
-                    </span>
-                    <input
-                      class="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-gray-200 rounded-md py-1 pl-9 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-0 sm:text-sm"
-                      placeholder="Search"
-                      type="text"
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                    />
-                  </label>
+
+                  <input
+                    style={{
+                      backgroundColor: 'transparent',
+                      borderWidth: '1',
+                      borderRadius: '0.375rem',
+                      display: "block",
+                      width: "16rem",
+                      paddingTop: "0.25rem",
+                      paddingBottom: "0.25rem",
+                      paddingLeft: "0.75rem",
+                      paddingRight: "0.75rem",
+                      fontSize: "0.875rem",
+                      lineHeight: "1.25rem",
+                      marginTop: "10px",
+                      marginBottom: "10px"
+                    }}
+                    placeholder="Search"
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
+
 
                   {/* Switcher */}
                   <div className="cc-flex cc-space-x-4">
