@@ -71,7 +71,12 @@ function GithubRepoScreen({ username, activeIntegrations, setPauseDataSourceSele
 		}
 		// If the user has not selected the file, we will select it.
 		else {
-			setSelectedRepos((prev) => [...prev, rowData.id]);
+			if (selectedRepos.length >= 25) {
+				toast.error("You can only select a maximum of 25 repos at a time")
+			} else {
+				setSelectedRepos((prev) => [...prev, rowData.id]);
+			}
+
 		}
 	};
 
@@ -96,7 +101,7 @@ function GithubRepoScreen({ username, activeIntegrations, setPauseDataSourceSele
 			const data = await res.json()
 			if (data.length) {
 				setPage((prev) => prev + 1)
-				setRepos([...repos, data])
+				setRepos([...repos, ...data])
 			} else {
 				setHasMoreFiles(false)
 			}
