@@ -96,6 +96,8 @@ const ThirdPartyList = ({ setActiveStep, activeIntegrations }) => {
           backgroundColor: 'transparent',
           borderWidth: '1',
           borderRadius: '0.375rem',
+          borderColor: "#6b7280",
+          borderWidth: "1px",
           display: "block",
           width: "100%",
           paddingTop: "0.25rem",

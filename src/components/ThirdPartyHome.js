@@ -785,8 +785,9 @@ const ThirdPartyHome = ({
                   <input
                     style={{
                       backgroundColor: 'transparent',
-                      borderWidth: '1',
                       borderRadius: '0.375rem',
+                      borderColor: "#6b7280",
+                      borderWidth: "1px",
                       display: "block",
                       width: "16rem",
                       paddingTop: "0.25rem",
@@ -796,7 +797,7 @@ const ThirdPartyHome = ({
                       fontSize: "0.875rem",
                       lineHeight: "1.25rem",
                       marginTop: "10px",
-                      marginBottom: "10px"
+                      marginBottom: "10px",
                     }}
                     placeholder="Search"
                     type="text"
