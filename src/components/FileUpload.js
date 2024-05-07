@@ -480,13 +480,6 @@ function FileUpload({ setActiveStep }) {
             />
           )}
           <h1 className="cc-grow">Upload Files</h1>
-          <HiX
-            onClick={() => manageModalOpenState(false)}
-            className="cc-cursor-pointer cc-h-5 cc-w-5"
-            style={{
-              color: primaryTextColor,
-            }}
-          />
         </div>
       </Dialog.Title>
 

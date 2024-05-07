@@ -79,13 +79,6 @@ const ThirdPartyList = ({ setActiveStep, activeIntegrations }) => {
             className="cc-cursor-pointer cc-h-6 cc-w-6 cc-text-gray-400"
           />
           <h1 className="cc-grow">Integrations</h1>
-          <HiX
-            onClick={() => manageModalOpenState(false)}
-            className="cc-cursor-pointer cc-h-5 cc-w-5"
-            style={{
-              color: primaryTextColor,
-            }}
-          />
         </div>
       </Dialog.Title>
 
