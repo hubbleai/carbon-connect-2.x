@@ -168,7 +168,7 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
               type="text"
               className="cc-p-2 cc-flex-grow cc-text-gray-700 cc-text-sm cc-border-4 cc-border-gray-400"
               style={{ borderRadius: '0.375rem' }}
-              placeholder="your-subdomain.confluence.com"
+              placeholder="your-subdomain"
               value={confluenceSubdomain}
               onChange={(e) => setConfluenceSubdomain(e.target.value)}
             />

@@ -105,8 +105,12 @@ function FileUpload({ setActiveStep }) {
     prependFilenameToChunks,
     maxItemsPerChunk,
     useOcr,
-    parsePdfTablesWithOcr
+    parsePdfTablesWithOcr,
+    showFilesTab
   } = useCarbon();
+  console.log(filesConfig)
+
+  const shouldShowFilesTab = showFilesTab || filesConfig?.showFilesTab;
 
   useEffect(() => {
     setTimeout(() => {
@@ -136,6 +140,7 @@ function FileUpload({ setActiveStep }) {
   }, [processedIntegrations]);
 
   useEffect(() => {
+    console.log(filesConfig, filePickerType)
     if (filesConfig.filePickerMode === 'FILES') {
       setFilePickerType('FILES');
     } else if (filesConfig.filePickerMode === 'FOLDERS') {
@@ -470,18 +475,11 @@ function FileUpload({ setActiveStep }) {
         <div className="cc-w-full cc-flex cc-items-center cc-space-x-4">
           {!entryPoint && (
             <HiArrowLeft
-              onClick={() => setActiveStep(1)}
+              onClick={() => shouldShowFilesTab ? setActiveStep("LOCAL_FILES") : setActiveStep(1)}
               className="cc-cursor-pointer cc-h-6 cc-w-6 cc-text-gray-400"
             />
           )}
           <h1 className="cc-grow">Upload Files</h1>
-          <HiX
-            onClick={() => manageModalOpenState(false)}
-            className="cc-cursor-pointer cc-h-5 cc-w-5"
-            style={{
-              color: primaryTextColor,
-            }}
-          />
         </div>
       </Dialog.Title>
 

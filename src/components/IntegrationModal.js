@@ -17,6 +17,7 @@ import ZendeskScreen from './ZendeskScreen';
 import SharepointScreen from './SharepointScreen';
 import ConfluenceScreen from './ConfluenceScreen';
 import ThirdPartyHome from './ThirdPartyHome';
+import LocalFilesScreen from "./LocalFilesScreen";
 // import { setFlag } from '../utils/helpers';
 
 const IntegrationModal = ({
@@ -259,21 +260,27 @@ const IntegrationModal = ({
           )}
 
           {activeStep === 'LOCAL_FILES' && (
-            <FileUpload
-              setActiveStep={setActiveStep}
-              entryPoint={entryPoint}
-              environment={environment}
-              tags={tags}
-              maxFileSize={maxFileSize}
-              onSuccess={onSuccess}
-              onError={onError}
-              primaryBackgroundColor={primaryBackgroundColor}
-              primaryTextColor={primaryTextColor}
-              secondaryBackgroundColor={secondaryBackgroundColor}
-              secondaryTextColor={secondaryTextColor}
-              allowMultipleFiles={allowMultipleFiles}
-            />
+            <LocalFilesScreen setActiveStep={setActiveStep} />
           )}
+
+          {
+            activeStep == 'FILE_UPLOAD' && (
+              <FileUpload
+                setActiveStep={setActiveStep}
+                entryPoint={entryPoint}
+                environment={environment}
+                tags={tags}
+                maxFileSize={maxFileSize}
+                onSuccess={onSuccess}
+                onError={onError}
+                primaryBackgroundColor={primaryBackgroundColor}
+                primaryTextColor={primaryTextColor}
+                secondaryBackgroundColor={secondaryBackgroundColor}
+                secondaryTextColor={secondaryTextColor}
+                allowMultipleFiles={allowMultipleFiles}
+              />
+            )
+          }
 
           {activeStep === 'WEB_SCRAPER' && (
             <WebScraper

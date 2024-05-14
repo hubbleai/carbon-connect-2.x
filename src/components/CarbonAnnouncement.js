@@ -74,18 +74,6 @@ const CarbonAnnouncement = ({ setActiveStep, activeIntegrations }) => {
 
   return (
     <div className="cc-flex cc-flex-col cc-items-center cc-relative cc-h-full">
-      <Dialog.Title className="cc-text-lg cc-mb-4 cc-font-medium cc-w-full cc-absolute">
-        <div className="cc-w-full cc-flex cc-items-center cc-space-x-4">
-          <h1 className="cc-grow"></h1>
-          <HiX
-            onClick={() => manageModalOpenState(false)}
-            className="cc-cursor-pointer cc-h-5 cc-w-5"
-            style={{
-              color: primaryTextColor,
-            }}
-          />
-        </div>
-      </Dialog.Title>
       {whiteLabelDataLoading ?
         <div class="cc-flex cc-justify-center cc-items-center cc-h-full">
           <div class="cc-relative cc-inline-flex">

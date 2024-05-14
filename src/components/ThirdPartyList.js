@@ -79,34 +79,34 @@ const ThirdPartyList = ({ setActiveStep, activeIntegrations }) => {
             className="cc-cursor-pointer cc-h-6 cc-w-6 cc-text-gray-400"
           />
           <h1 className="cc-grow">Integrations</h1>
-          <HiX
-            onClick={() => manageModalOpenState(false)}
-            className="cc-cursor-pointer cc-h-5 cc-w-5"
-            style={{
-              color: primaryTextColor,
-            }}
-          />
         </div>
       </Dialog.Title>
 
-      <label class="relative block cc-w-full cc-my-4 cc-border-gray-500 cc-bg-gray-100 cc-py-1 cc-px-2 cc-flex cc-flex-row cc-rounded-md">
-        {/* <span class="sr-only">Search</span> */}
-        <span class="absolute inset-y-0 left-0 flex items-center pl-2">
-          <HiSearch className="cc-w-4 cc-h-4" />
-        </span>
-        <input
-          class="placeholder:italic placeholder:text-slate-400 block bg-white w-full rounded-md py-1 pl-9 pr-3  focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-0 sm:text-sm"
-          style={{
-            backgroundColor: 'transparent',
-            borderWidth: '0',
-            borderRadius: '0.375rem',
-          }}
-          placeholder="Search"
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </label>
+
+      <input
+        // class="placeholder:italic placeholder:text-slate-400 block bg-white w-full rounded-md py-1 pl-9 pr-3  focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-0 sm:text-sm"
+        style={{
+          backgroundColor: 'transparent',
+          borderWidth: '1',
+          borderRadius: '0.375rem',
+          borderColor: "#6b7280",
+          borderWidth: "1px",
+          display: "block",
+          width: "100%",
+          paddingTop: "0.25rem",
+          paddingBottom: "0.25rem",
+          paddingLeft: "0.75rem",
+          paddingRight: "0.75rem",
+          fontSize: "0.875rem",
+          lineHeight: "1.25rem",
+          marginTop: "10px",
+          marginBottom: "10px"
+        }}
+        placeholder="Search"
+        type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
 
       <div className="cc-grid cc-grid-cols-1 xs:cc-grid-cols-2 md:cc-grid-cols-3 lg:cc-grid-cols-4 cc-w-full cc-gap-y-3 cc-gap-x-3 cc-auto-rows-min cc-overflow-y-auto cc-h-full">
         {filteredIntegrations.map((integration) => {
