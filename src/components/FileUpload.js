@@ -20,7 +20,8 @@ import {
   BsFiletypeDocx,
   BsFiletypePptx,
   BsExclamationTriangle,
-  BsFiletypeJson
+  BsFiletypeJson,
+  BsFiletypeHtml
 } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import { LuLoader2 } from 'react-icons/lu';
@@ -29,7 +30,7 @@ import '../index.css';
 import { BASE_URL, onSuccessEvents } from '../constants';
 import { useCarbon } from '../contexts/CarbonContext';
 
-const defaultSupportedFileTypes = ['txt', 'csv', 'pdf', 'docx', 'pptx', 'json'];
+const defaultSupportedFileTypes = ['txt', 'csv', 'pdf', 'docx', 'pptx', 'json', "html"];
 
 const FileItemIcon = ({ fileObject, allowedFileTypes }) => {
   const fileExt = fileObject.name.split('.').pop();
@@ -60,6 +61,9 @@ const FileItemIcon = ({ fileObject, allowedFileTypes }) => {
   }
   if (fileExt === 'json') {
     return <BsFiletypeJson className="cc-w-10 cc-h-10 cc-mx-auto" />;
+  }
+  if (fileExt === 'html') {
+    return <BsFiletypeHtml className="cc-w-10 cc-h-10 cc-mx-auto" />;
   }
   return <AiOutlineFileUnknown className="cc-w-10 cc-h-10 cc-mx-auto" />;
 };
@@ -108,7 +112,9 @@ function FileUpload({ setActiveStep }) {
     parsePdfTablesWithOcr,
     showFilesTab
   } = useCarbon();
-  console.log(filesConfig)
+  const allowedFileExtensions = filesConfig.allowedFileTypes
+    ? filesConfig.allowedFileTypes.map((config) => config.extension.toLowerCase())
+    : defaultSupportedFileTypes;
 
   const shouldShowFilesTab = showFilesTab || filesConfig?.showFilesTab;
 
@@ -223,9 +229,6 @@ function FileUpload({ setActiveStep }) {
         files.map(async (file, index) => {
           try {
             const fileType = file.name.split('.').pop();
-            const allowedFileExtensions = filesConfig.allowedFileTypes
-              ? filesConfig.allowedFileTypes.map((config) => config.extension)
-              : defaultSupportedFileTypes;
 
             const isExtensionAllowed = allowedFileExtensions.find(
               (configuredType) => configuredType === fileType
@@ -706,13 +709,7 @@ function FileUpload({ setActiveStep }) {
                         <div className="cc-w-1/6 cc-text-[#484848] cc-h-10">
                           <FileItemIcon
                             fileObject={file}
-                            allowedFileTypes={
-                              filesConfig.allowedFileTypes
-                                ? filesConfig.allowedFileTypes.map(
-                                  (config) => config.extension
-                                )
-                                : defaultSupportedFileTypes
-                            }
+                            allowedFileTypes={allowedFileExtensions}
                           />
                         </div>
 
