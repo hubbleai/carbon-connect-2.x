@@ -63,6 +63,7 @@ export interface BaseIntegration {
     showFilesTab?: boolean;
     useOcr?: boolean;
     parsePdfTablesWithOcr?: boolean;
+    sendDeletionWebhooks?: boolean;
 }
 export interface LocalFilesIntegration extends BaseIntegration {
     maxFileSize: number;
@@ -193,6 +194,7 @@ export interface CarbonConnectProps {
     useRequestIds?: boolean;
     useOcr?: boolean;
     parsePdfTablesWithOcr?: boolean;
+    sendDeletionWebhooks?: boolean;
 }
 declare const CarbonConnect: React.FC<CarbonConnectProps>;
 export { CarbonConnect };

@@ -146,7 +146,6 @@ function FileUpload({ setActiveStep }) {
   }, [processedIntegrations]);
 
   useEffect(() => {
-    console.log(filesConfig, filePickerType)
     if (filesConfig.filePickerMode === 'FILES') {
       setFilePickerType('FILES');
     } else if (filesConfig.filePickerMode === 'FOLDERS') {
@@ -476,12 +475,12 @@ function FileUpload({ setActiveStep }) {
     <div className="cc-flex cc-flex-col cc-items-center cc-relative cc-h-full cc-p-4">
       <Dialog.Title className="cc-text-lg cc-mb-4 cc-font-medium cc-w-full">
         <div className="cc-w-full cc-flex cc-items-center cc-space-x-4">
-          {!entryPoint && (
+          {
             <HiArrowLeft
               onClick={() => shouldShowFilesTab ? setActiveStep("LOCAL_FILES") : setActiveStep(1)}
               className="cc-cursor-pointer cc-h-6 cc-w-6 cc-text-gray-400"
             />
-          )}
+          }
           <h1 className="cc-grow">Upload Files</h1>
         </div>
       </Dialog.Title>

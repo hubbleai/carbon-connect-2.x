@@ -51,7 +51,8 @@ export const CarbonProvider = ({
   requestIds,
   setRequestIds,
   useOcr,
-  parsePdfTablesWithOcr
+  parsePdfTablesWithOcr,
+  sendDeletionWebhooks
 }) => {
   const [showModal, setShowModal] = useState(open);
   const [loading, setLoading] = useState(false);
@@ -305,7 +306,8 @@ export const CarbonProvider = ({
     useRequestIds,
     useOcr,
     parsePdfTablesWithOcr,
-    loading
+    loading,
+    sendDeletionWebhooks
   };
 
   return (
