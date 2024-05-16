@@ -72,7 +72,8 @@ const ThirdPartyHome = ({
     setRequestIds,
     useOcr,
     parsePdfTablesWithOcr,
-    syncFilesOnConnection
+    syncFilesOnConnection,
+    sendDeletionWebhooks
   } = useCarbon();
 
   const [service, setService] = useState(null);
@@ -411,11 +412,23 @@ const ThirdPartyHome = ({
   };
 
   const handleDeleteFile = async (rowData) => {
-    const deleteFileResponse = await deleteFiles({
-      accessToken: accessToken,
-      environment: environment,
-      fileIds: [rowData.id],
-    });
+    const requestBody = {
+      filters: {
+        "ids": [rowData.id]
+      },
+      send_webhook: sendDeletionWebhooks || integrationData?.sendDeletionWebhooks || false
+    }
+    const deleteFileResponse = await authenticatedFetch(
+      `${BASE_URL[environment]}/delete_files_v2`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
     if (deleteFileResponse.status === 200) {
       const newFiles = [...files.filter(file => file.id !== rowData.id)]
       const newSortedFiles = [...sortedFiles.filter(file => file.id !== rowData.id)]

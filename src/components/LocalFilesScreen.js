@@ -42,7 +42,9 @@ const LocalFilesScreen = ({
 		entryPoint,
 		environment,
 		showFilesTab,
-		processedIntegrations
+		processedIntegrations,
+		authenticatedFetch,
+		sendDeletionWebhooks
 	} = useCarbon();
 
 
@@ -64,7 +66,7 @@ const LocalFilesScreen = ({
 		setIntegrationData(integrationData);
 	}, [processedIntegrations]);
 
-	const [filesLoading, setFilesLoading] = useState(false)
+	const [filesLoading, setFilesLoading] = useState(true)
 
 	const [files, setFiles] = useState([]);
 	const [sortedFiles, setSortedFiles] = useState([]);
@@ -89,15 +91,15 @@ const LocalFilesScreen = ({
 	}, [sortedFiles, searchQuery]);
 
 	useEffect(() => {
-		if (!integrationData) return
+		if (!integrationData || !accessToken) return
 		setOffset(0)
 		setFiles([])
 		setSortedFiles([])
 		setFilteredFiles([])
 		setFilesLoading(true)
-		loadInitialData().then(() => setFilesLoading(false));
+		loadInitialData().finally(() => setFilesLoading(false));
 		setHasMoreFiles(true)
-	}, [filesTabRefreshes, integrationData]);
+	}, [filesTabRefreshes, integrationData, accessToken]);
 
 	const loadInitialData = async () => {
 		if (!shouldShowFilesTab) return
@@ -294,11 +296,23 @@ const LocalFilesScreen = ({
 
 
 	const handleDeleteFile = async (rowData) => {
-		const deleteFileResponse = await deleteFiles({
-			accessToken: accessToken,
-			environment: environment,
-			fileIds: [rowData.id],
-		});
+		const requestBody = {
+			filters: {
+				"ids": [rowData.id]
+			},
+			send_webhook: sendDeletionWebhooks || integrationData?.sendDeletionWebhooks || false
+		}
+		const deleteFileResponse = await authenticatedFetch(
+			`${BASE_URL[environment]}/delete_files_v2`,
+			{
+				method: 'POST',
+				headers: {
+					Authorization: `Token ${accessToken}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(requestBody),
+			}
+		);
 		if (deleteFileResponse.status === 200) {
 			const newFiles = [...files.filter(file => file.id !== rowData.id)]
 			const newSortedFiles = [...sortedFiles.filter(file => file.id !== rowData.id)]

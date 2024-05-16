@@ -76,6 +76,7 @@ export interface BaseIntegration {
   showFilesTab?: boolean;
   useOcr?: boolean;
   parsePdfTablesWithOcr?: boolean;
+  sendDeletionWebhooks?: boolean;
 }
 
 export interface LocalFilesIntegration extends BaseIntegration {
@@ -222,6 +223,7 @@ export interface CarbonConnectProps {
   useRequestIds?: boolean;
   useOcr?: boolean;
   parsePdfTablesWithOcr?: boolean;
+  sendDeletionWebhooks?: boolean;
 }
 
 const CarbonConnect: React.FC<CarbonConnectProps> = ({
@@ -246,6 +248,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       skipEmbeddingGeneration: false,
       setPageAsBoundary: false,
       filePickerMode: "FILES",
+      sendDeletionWebhooks: false,
       allowedFileTypes: [
         {
           extension: "csv",
@@ -284,6 +287,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
   useRequestIds = false,
   useOcr = false,
   parsePdfTablesWithOcr = false,
+  sendDeletionWebhooks = false,
 }) => {
   const [activeStep, setActiveStep] = useState<string | number>(
     entryPoint === "LOCAL_FILES" || entryPoint === "WEB_SCRAPER"
@@ -335,6 +339,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       setRequestIds={setRequestIds}
       useOcr={useOcr}
       parsePdfTablesWithOcr={parsePdfTablesWithOcr}
+      sendDeletionWebhooks={sendDeletionWebhooks}
     >
       <IntegrationModal
         orgName={orgName}
