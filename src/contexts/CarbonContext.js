@@ -107,8 +107,8 @@ export const CarbonProvider = ({
   };
 
   const fetchTokens = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await tokenFetcher();
       setAccessToken(response.access_token);
 
@@ -124,12 +124,11 @@ export const CarbonProvider = ({
       );
       const whiteLabelingResponseData = await whiteLabelingResponse.json();
       setWhiteLabelingData(whiteLabelingResponseData);
-
-      setLoading(false);
     } catch (err) {
       setError(true);
       console.error('[CarbonContext.js] Error in fetchTokens: ', err);
     }
+    setLoading(false);
   };
 
   // todo - handle multiple data sources - this is used for white labeling
