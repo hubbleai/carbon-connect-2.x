@@ -69,6 +69,7 @@ export const LOCAL_FILE_TYPES = [
   "MD",
   "RTF",
   "JSON",
+  "HTML",
   "RAW_TEXT",
   "JPG",
   "JPEG",
