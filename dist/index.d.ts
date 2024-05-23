@@ -48,9 +48,12 @@ export interface FileType {
     generateSparseVectors?: boolean;
     parsePdfTablesWithOcr?: boolean;
 }
-export type AutoSyncedSourceTypes = "ARTICLE" | "TICKET";
+export declare enum AutoSyncedSourceTypes {
+    ARTICLE = "ARTICLE",
+    TICKET = "TICKET"
+}
 export type FileSyncConfig = {
-    auto_synced_source_types?: [AutoSyncedSourceTypes];
+    auto_synced_source_types?: AutoSyncedSourceTypes[];
     sync_attachments?: boolean;
     detect_audio_language?: boolean;
 };
