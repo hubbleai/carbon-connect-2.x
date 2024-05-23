@@ -61,6 +61,14 @@ export interface FileType {
   parsePdfTablesWithOcr?: boolean;
 }
 
+export type AutoSyncedSourceTypes = "ARTICLE" | "TICKET";
+
+export type FileSyncConfig = {
+  auto_synced_source_types?: [AutoSyncedSourceTypes];
+  sync_attachments?: boolean;
+  detect_audio_language?: boolean;
+};
+
 export interface BaseIntegration {
   id: IntegrationName;
   chunkSize?: number;
@@ -77,6 +85,7 @@ export interface BaseIntegration {
   useOcr?: boolean;
   parsePdfTablesWithOcr?: boolean;
   sendDeletionWebhooks?: boolean;
+  fileSyncConfig?: FileSyncConfig;
 }
 
 export interface LocalFilesIntegration extends BaseIntegration {
@@ -224,6 +233,7 @@ export interface CarbonConnectProps {
   useOcr?: boolean;
   parsePdfTablesWithOcr?: boolean;
   sendDeletionWebhooks?: boolean;
+  fileSyncConfig?: FileSyncConfig;
 }
 
 const CarbonConnect: React.FC<CarbonConnectProps> = ({
@@ -288,6 +298,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
   useOcr = false,
   parsePdfTablesWithOcr = false,
   sendDeletionWebhooks = false,
+  fileSyncConfig = {},
 }) => {
   const [activeStep, setActiveStep] = useState<string | number>(
     entryPoint === "LOCAL_FILES" || entryPoint === "WEB_SCRAPER"
@@ -340,6 +351,7 @@ const CarbonConnect: React.FC<CarbonConnectProps> = ({
       useOcr={useOcr}
       parsePdfTablesWithOcr={parsePdfTablesWithOcr}
       sendDeletionWebhooks={sendDeletionWebhooks}
+      fileSyncConfig={fileSyncConfig}
     >
       <IntegrationModal
         orgName={orgName}

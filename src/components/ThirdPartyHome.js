@@ -73,8 +73,10 @@ const ThirdPartyHome = ({
     useOcr,
     parsePdfTablesWithOcr,
     syncFilesOnConnection,
-    sendDeletionWebhooks
+    sendDeletionWebhooks,
+    fileSyncConfig
   } = useCarbon();
+
 
   const [service, setService] = useState(null);
   const [integrationData, setIntegrationData] = useState(null);
@@ -522,6 +524,7 @@ const ThirdPartyHome = ({
       const useOcrValue = service?.useOcr || useOcr || false;
       const parsePdfTablesWithOcrValue = service?.parsePdfTablesWithOcr || parsePdfTablesWithOcr || false;
       const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
+      const fileSyncConfigValue = service?.fileSyncConfig || fileSyncConfig || {}
 
       let requestId = null
       if (useRequestIds) {
@@ -555,7 +558,8 @@ const ThirdPartyHome = ({
             ...(requestId && { request_id: requestId }),
             use_ocr: useOcrValue,
             parse_pdf_tables_with_ocr: parsePdfTablesWithOcrValue,
-            sync_source_items: syncSourceItems
+            sync_source_items: syncSourceItems,
+            file_sync_config: fileSyncConfigValue
           }),
         }
       );

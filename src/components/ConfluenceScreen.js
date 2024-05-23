@@ -49,7 +49,8 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
     setPageAsBoundary,
     useRequestIds,
     requestIds,
-    setRequestIds
+    setRequestIds,
+    fileSyncConfig
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -77,6 +78,7 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
       const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT
       const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
+      const fileSyncConfigValue = service?.fileSyncConfig || fileSyncConfig || {}
 
       const subdomain = confluenceSubdomain
         .replace('https://www.', '')
@@ -108,7 +110,8 @@ function ConfluenceScreen({ buttonColor, labelColor }) {
         connecting_new_account: true,
         set_page_as_boundary: setPageAsBoundaryValue,
         ...(requestId && { request_id: requestId }),
-        sync_source_items: syncSourceItems
+        sync_source_items: syncSourceItems,
+        file_sync_config: fileSyncConfigValue
       };
 
       const response = await authenticatedFetch(

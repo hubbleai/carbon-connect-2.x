@@ -51,7 +51,8 @@ function ZendeskScreen({ buttonColor, labelColor }) {
     setPageAsBoundary,
     useRequestIds,
     requestIds,
-    setRequestIds
+    setRequestIds,
+    fileSyncConfig
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -79,6 +80,7 @@ function ZendeskScreen({ buttonColor, labelColor }) {
       const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
       const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
+      const fileSyncConfigValue = service?.fileSyncConfig || fileSyncConfig || {}
 
       let requestId = null
       if (useRequestIds) {
@@ -110,7 +112,8 @@ function ZendeskScreen({ buttonColor, labelColor }) {
         connecting_new_account: true,
         set_page_as_boundary: setPageAsBoundaryValue,
         ...(requestId && { request_id: requestId }),
-        sync_source_items: syncSourceItems
+        sync_source_items: syncSourceItems,
+        file_sync_config: fileSyncConfigValue
       };
 
       const response = await authenticatedFetch(

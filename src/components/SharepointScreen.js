@@ -55,7 +55,8 @@ function SharepointScreen({ buttonColor, labelColor }) {
     setPageAsBoundary,
     useRequestIds,
     requestIds,
-    setRequestIds
+    setRequestIds,
+    fileSyncConfig
   } = useCarbon();
 
   const fetchOauthURL = async () => {
@@ -90,6 +91,7 @@ function SharepointScreen({ buttonColor, labelColor }) {
       const maxItemsPerChunkValue = service?.maxItemsPerChunk || maxItemsPerChunk || null;
       const setPageAsBoundaryValue = service?.setPageAsBoundary || setPageAsBoundary || false;
       const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
+      const fileSyncConfigValue = service?.fileSyncConfig || fileSyncConfig || {}
 
       let requestId = null
       if (useRequestIds) {
@@ -112,7 +114,8 @@ function SharepointScreen({ buttonColor, labelColor }) {
         connecting_new_account: true,
         set_page_as_boundary: setPageAsBoundaryValue,
         ...(requestId && { request_id: requestId }),
-        sync_source_items: syncSourceItems
+        sync_source_items: syncSourceItems,
+        file_sync_config: fileSyncConfigValue
       };
 
       const response = await authenticatedFetch(

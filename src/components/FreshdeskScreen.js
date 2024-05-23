@@ -43,7 +43,8 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 		tags,
 		useRequestIds,
 		requestIds,
-		setRequestIds
+		setRequestIds,
+		fileSyncConfig
 	} = useCarbon();
 
 	const connectFreshdesk = async () => {
@@ -81,6 +82,7 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 				service?.prependFilenameToChunks || prependFilenameToChunks || false;
 			const syncFilesOnConnection = service?.syncFilesOnConnection ?? SYNC_FILES_ON_CONNECT;
 			const syncSourceItems = service?.syncSourceItems ?? SYNC_SOURCE_ITEMS;
+			const fileSyncConfigValue = service?.fileSyncConfig || fileSyncConfig || {}
 
 			let requestId = null
 			if (useRequestIds) {
@@ -108,7 +110,8 @@ function FreshdeskScreen({ buttonColor, labelColor }) {
 				prepend_filename_to_chunks: prependFilenameToChunksValue,
 				sync_files_on_connection: syncFilesOnConnection,
 				...(requestId && { request_id: requestId }),
-				sync_source_items: syncSourceItems
+				sync_source_items: syncSourceItems,
+				file_sync_config: fileSyncConfigValue
 			};
 
 			const response = await authenticatedFetch(

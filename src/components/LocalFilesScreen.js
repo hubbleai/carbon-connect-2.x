@@ -44,9 +44,8 @@ const LocalFilesScreen = ({
 		showFilesTab,
 		processedIntegrations,
 		authenticatedFetch,
-		sendDeletionWebhooks
+		sendDeletionWebhooks,
 	} = useCarbon();
-
 
 	const [filesTabRefreshes, setFilesTabRefreshes] = useState(0);
 	const [integrationData, setIntegrationData] = useState(null)

@@ -48,6 +48,12 @@ export interface FileType {
     generateSparseVectors?: boolean;
     parsePdfTablesWithOcr?: boolean;
 }
+export type AutoSyncedSourceTypes = "ARTICLE" | "TICKET";
+export type FileSyncConfig = {
+    auto_synced_source_types?: [AutoSyncedSourceTypes];
+    sync_attachments?: boolean;
+    detect_audio_language?: boolean;
+};
 export interface BaseIntegration {
     id: IntegrationName;
     chunkSize?: number;
@@ -64,6 +70,7 @@ export interface BaseIntegration {
     useOcr?: boolean;
     parsePdfTablesWithOcr?: boolean;
     sendDeletionWebhooks?: boolean;
+    fileSyncConfig?: FileSyncConfig;
 }
 export interface LocalFilesIntegration extends BaseIntegration {
     maxFileSize: number;
@@ -195,6 +202,7 @@ export interface CarbonConnectProps {
     useOcr?: boolean;
     parsePdfTablesWithOcr?: boolean;
     sendDeletionWebhooks?: boolean;
+    fileSyncConfig?: FileSyncConfig;
 }
 declare const CarbonConnect: React.FC<CarbonConnectProps>;
 export { CarbonConnect };
