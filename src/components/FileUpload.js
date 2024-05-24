@@ -25,6 +25,7 @@ import {
 } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import { LuLoader2 } from 'react-icons/lu';
+import { IoAddCircle } from 'react-icons/io5';
 
 import '../index.css';
 import { BASE_URL, onSuccessEvents } from '../constants';
@@ -470,6 +471,13 @@ function FileUpload({ setActiveStep }) {
     fileInputRef.current.click(); // Trigger the hidden file input
   };
 
+  const resetSyncResponse = () => {
+    setSyncResponse(null)
+    setSuccessfulFiles([])
+    setFailedFiles([])
+    setFiles([])
+  }
+
 
   return (
     <div className="cc-flex cc-flex-col cc-items-center cc-relative cc-h-full cc-p-4">
@@ -819,6 +827,15 @@ function FileUpload({ setActiveStep }) {
           )}
         </>
       )}
+
+      {syncResponse ? <button
+        className="cc-px-2 cc-font-medium cc-py-2 cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
+        onClick={() => resetSyncResponse()}
+      >
+        <IoAddCircle />
+        <span>Add More Files</span>
+      </button> : null}
+
     </div>
   );
 }

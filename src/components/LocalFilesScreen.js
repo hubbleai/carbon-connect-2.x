@@ -21,15 +21,14 @@ import {
 	resyncFile,
 	deleteFiles
 } from 'carbon-connect-js';
-import { BASE_URL, FILE_PICKER_BASED_CONNECTORS, LOCAL_FILE_TYPES, onSuccessEvents, PICKER_OR_URL_BASED_CONNECTORS, SYNC_FILES_ON_CONNECT, SYNC_SOURCE_ITEMS, SYNC_URL_BASED_CONNECTORS, TWO_STEP_CONNECTORS } from '../constants';
-import { VscDebugDisconnect, VscLoading, VscSync } from 'react-icons/vsc';
-import { IoCloudUploadOutline } from 'react-icons/io5';
-import { CiCircleList } from 'react-icons/ci';
+import { BASE_URL, LOCAL_FILE_TYPES } from '../constants';
+
+import { IoAddCircle } from 'react-icons/io5';
+
 import 'react-virtualized/styles.css'; // import styles
 import resyncIcon from '../logos/resyncIcon.svg';
 import deleteIcon from '../logos/delete-button.svg';
-import { MdOutlineCloudUpload, MdRefresh } from "react-icons/md";
-import { INTEGRATIONS_LIST } from "../utils/integrationsList";
+import { MdRefresh } from "react-icons/md";
 
 const PER_PAGE = 25
 
@@ -483,21 +482,15 @@ const LocalFilesScreen = ({
 									/>
 									<div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
 										<button
-											className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-text-black cc-bg-gray-300`}
-										// onClick={() => setShowFileSelector(false)}
+											className="cc-px-2 md:cc-text-xs cc-font-medium cc-py-2 cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
+											onClick={() => {
+												handleUploadFilesClick()
+											}}
 										>
-											<CiCircleList className="cc-w-4 cc-h-4" />
+											<IoAddCircle />
+											<span>Add More Files</span>
 										</button>
-										{
-											<button
-												className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md`}
-												onClick={() => {
-													handleUploadFilesClick()
-												}}
-											>
-												<IoCloudUploadOutline className="cc-w-4 cc-h-4" />
-											</button>
-										}
+
 									</div>
 								</div>
 							</div>

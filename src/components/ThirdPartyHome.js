@@ -23,7 +23,7 @@ import {
 } from 'carbon-connect-js';
 import { BASE_URL, FILE_PICKER_BASED_CONNECTORS, onSuccessEvents, PICKER_OR_URL_BASED_CONNECTORS, SYNC_FILES_ON_CONNECT, SYNC_SOURCE_ITEMS, SYNC_URL_BASED_CONNECTORS, TWO_STEP_CONNECTORS } from '../constants';
 import { VscDebugDisconnect, VscLoading, VscSync } from 'react-icons/vsc';
-import { IoCloudUploadOutline } from 'react-icons/io5';
+import { IoCloudUploadOutline, IoAddCircle } from 'react-icons/io5';
 import { CiCircleList } from 'react-icons/ci';
 import 'react-virtualized/styles.css'; // import styles
 import resyncIcon from '../logos/resyncIcon.svg';
@@ -829,24 +829,29 @@ const ThirdPartyHome = ({
                       onClick={() => handleRefreshList()}
                       className={`cc-cursor-pointer cc-text-gray-500 cc-mt-0.5 cc-h-6 cc-w-6`}
                     />
-                    <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
-                      <button
-                        className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-l-md cc-text-black${!showFileSelector && ' cc-bg-gray-300'}`}
-                        onClick={() => setShowFileSelector(false)}
-                      >
-                        <CiCircleList className="cc-w-4 cc-h-4" />
-                      </button>
-                      {shouldShowUploadIcon ?
-                        <button
-                          className={`cc-flex cc-p-0.5 cc-text-center cc-cursor-pointer cc-items-center cc-justify-center cc-w-6 cc-text-xs cc-h-6 cc-rounded-r-md${showFileSelector && ' cc-bg-gray-300'}`}
-                          onClick={() => {
-                            handleUploadFilesClick()
-                          }}
-                        >
-                          <IoCloudUploadOutline className="cc-w-4 cc-h-4" />
-                        </button>
-                        : null}
-                    </div>
+                    {shouldShowUploadIcon ?
+                      <div className="cc-flex cc-flex-row cc-space-x-0 cc-border cc-rounded-md">
+                        {
+                          showFileSelector ? (
+                            <button
+                              className="cc-px-2 md:cc-text-xs cc-font-medium cc-py-2 cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
+                              onClick={() => setShowFileSelector(false)}
+                            >
+                              <span>View Synced Files</span>
+                            </button>
+                          ) : (
+                            <button
+                              className="cc-px-2 md:cc-text-xs cc-font-medium cc-py-2 cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
+                              onClick={() => {
+                                handleUploadFilesClick()
+                              }}
+                            >
+                              <IoAddCircle />
+                              <span>Add More Files</span>
+                            </button>
+                          )
+                        }
+                      </div> : null}
                   </div>
                 </div>
 
