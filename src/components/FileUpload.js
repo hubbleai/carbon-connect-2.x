@@ -828,13 +828,24 @@ function FileUpload({ setActiveStep }) {
         </>
       )}
 
-      {syncResponse ? <button
-        className="cc-px-2 cc-font-medium cc-py-2 cc-rounded-md cc-flex cc-items-center cc-space-x-2 cc-cursor-pointer"
-        onClick={() => resetSyncResponse()}
-      >
-        <IoAddCircle />
-        <span>Add More Files</span>
-      </button> : null}
+      {syncResponse ?
+
+        <button
+          className={`cc-w-full cc-h-12 cc-flex cc-flex-row cc-items-center cc-justify-center cc-rounded-md cc-cursor-pointer cc-space-x-2`}
+          style={{
+            backgroundColor: uploadButtonHoveredState
+              ? darkenColor(primaryBackgroundColor, -10)
+              : primaryBackgroundColor,
+            color: primaryTextColor,
+          }}
+          onClick={() => resetSyncResponse()}
+          onMouseEnter={() => setUploadButtonHoveredState(true)}
+          onMouseLeave={() => setUploadButtonHoveredState(false)}
+        >
+          <IoAddCircle />
+
+          <p>{`Add More Files`}</p>
+        </button> : null}
 
     </div>
   );
