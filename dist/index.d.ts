@@ -47,6 +47,7 @@ export interface FileType {
     useOcr?: boolean;
     generateSparseVectors?: boolean;
     parsePdfTablesWithOcr?: boolean;
+    splitRows?: boolean;
 }
 export declare enum AutoSyncedSourceTypes {
     ARTICLE = "ARTICLE",
@@ -81,6 +82,7 @@ export interface LocalFilesIntegration extends BaseIntegration {
     maxFilesCount?: number;
     allowedFileTypes?: FileType[];
     filePickerMode?: FilePickerMode;
+    splitRows?: boolean;
 }
 export interface WebScraperIntegration extends BaseIntegration {
     recursionDepth?: number;
