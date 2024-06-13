@@ -30,6 +30,8 @@ import { IoAddCircle } from 'react-icons/io5';
 import '../index.css';
 import { BASE_URL, onSuccessEvents } from '../constants';
 import { useCarbon } from '../contexts/CarbonContext';
+const ONE_MB = 1000000
+const DEFAULT_SIZE_MB = 20
 
 const defaultSupportedFileTypes = ['txt', 'csv', 'pdf', 'docx', 'pptx', 'json', "html"];
 
@@ -82,7 +84,7 @@ function FileUpload({ setActiveStep }) {
   const [syncResponse, setSyncResponse] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [filesConfig, setFilesConfig] = useState([]);
-  const [allowedMaxFileSize, setAllowedMaxFileSize] = useState(20);
+  const [allowedMaxFileSize, setAllowedMaxFileSize] = useState(DEFAULT_SIZE_MB);
   const [allowedMaxFilesCount, setAllowedMaxFilesCount] = useState(10);
 
   const {
@@ -111,7 +113,8 @@ function FileUpload({ setActiveStep }) {
     maxItemsPerChunk,
     useOcr,
     parsePdfTablesWithOcr,
-    showFilesTab
+    showFilesTab,
+    whiteLabelingData
   } = useCarbon();
   const allowedFileExtensions = filesConfig.allowedFileTypes
     ? filesConfig.allowedFileTypes.map((config) => config.extension.toLowerCase())
@@ -131,20 +134,20 @@ function FileUpload({ setActiveStep }) {
     const newFilesConfig = processedIntegrations.find(
       (integration) => integration.id === 'LOCAL_FILES'
     );
+    const defaultLimit = DEFAULT_SIZE_MB * ONE_MB
+    const orgLevelLimit = whiteLabelingData?.custom_limits?.file_size_limit || defaultLimit
+    const ccLimit = newFilesConfig?.maxFileSize || maxFileSize
+
+    const maxAllowedLimit = Math.min(orgLevelLimit, ccLimit)
+
     if (newFilesConfig) {
-      setAllowedMaxFileSize(
-        newFilesConfig.maxFileSize
-          ? newFilesConfig.maxFileSize / 1000000
-          : maxFileSize
-            ? maxFileSize / 1000000
-            : 20
-      );
+      setAllowedMaxFileSize(Math.floor(maxAllowedLimit / ONE_MB));
       setAllowedMaxFilesCount(
         newFilesConfig.maxFilesCount ? newFilesConfig.maxFilesCount : 10
       );
       setFilesConfig(newFilesConfig);
     }
-  }, [processedIntegrations]);
+  }, [processedIntegrations, whiteLabelingData]);
 
   useEffect(() => {
     if (filesConfig.filePickerMode === 'FILES') {

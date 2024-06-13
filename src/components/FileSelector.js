@@ -50,7 +50,7 @@ const FileSelector = ({ account, searchQuery, filePickerRefreshes }) => {
     requestIds,
     setRequestIds,
     useOcr,
-    parsePdfTablesWithOcr
+    parsePdfTablesWithOcr,
   } = useCarbon();
 
   // This holds the loading state of the files data.
