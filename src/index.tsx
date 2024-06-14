@@ -71,6 +71,7 @@ export type FileSyncConfig = {
   auto_synced_source_types?: AutoSyncedSourceTypes[];
   sync_attachments?: boolean;
   detect_audio_language?: boolean;
+  split_rows?: boolean;
 };
 
 export interface BaseIntegration {
